@@ -4,21 +4,25 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
-  const { response, session } = await updateSession(request)
+  const { response, session, role } = await updateSession(request)
   const path = request.nextUrl.pathname
 
-  // ── ADMIN ROUTES ──────────────────────────────────────────
-  // Protect all /admin/* except /admin/login
+  // Admin routes: protect all /admin/* except /admin/login
   if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
     if (!session) {
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }
-    // Full admin role check (admins table lookup) happens inside admin layout
-    // Middleware only checks session presence to avoid DB calls on every request
+
+    if (role === 'customer') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    if (role === 'rider') {
+      return NextResponse.redirect(new URL('/rider/dashboard', request.url))
+    }
   }
 
-  // ── RIDER ROUTES ──────────────────────────────────────────
-  // Protect all /rider/* except /rider/login and /rider/auth
+  // Rider routes: protect all /rider/* except /rider/login and /rider/auth
   if (
     path.startsWith('/rider') &&
     !path.startsWith('/rider/login') &&
@@ -27,10 +31,17 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     if (!session) {
       return NextResponse.redirect(new URL('/rider/login', request.url))
     }
-    // Full rider role check (riders table + is_active) happens inside rider layout
+
+    if (role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    if (role === 'customer') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
-  // ── CUSTOMER PROTECTED ROUTES ─────────────────────────────
+  // Customer protected routes
   const customerProtectedPaths = [
     '/dashboard',
     '/book',
@@ -45,16 +56,43 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     path.startsWith(p)
   )
 
-  if (isCustomerProtected && !session) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', path)
-    return NextResponse.redirect(loginUrl)
+  if (isCustomerProtected) {
+    if (!session) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', path)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    if (role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    if (role === 'rider') {
+      return NextResponse.redirect(new URL('/rider/dashboard', request.url))
+    }
   }
 
-  // ── REDIRECT LOGGED-IN USERS FROM AUTH PAGES ─────────────
-  // Customer: redirect /login or /signup if already logged in
+  // Role-aware redirects from auth pages
   if (session && (path === '/login' || path === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (role === 'admin') {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
+
+    if (role === 'rider') {
+      return NextResponse.redirect(new URL('/rider/dashboard', request.url))
+    }
+
+    if (role === 'customer') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  if (session && path === '/admin/login' && role === 'admin') {
+    return NextResponse.redirect(new URL('/admin', request.url))
+  }
+
+  if (session && path === '/rider/login' && role === 'rider') {
+    return NextResponse.redirect(new URL('/rider/dashboard', request.url))
   }
 
   return response
@@ -62,14 +100,6 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths EXCEPT:
-     * - _next/static (static files)
-     * - _next/image (image optimization)
-     * - favicon.ico
-     * - public folder files (icons, manifest, sw.js, offline.html)
-     * - API routes (handled internally)
-     */
     '/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|offline.html).*)',
   ],
 }
