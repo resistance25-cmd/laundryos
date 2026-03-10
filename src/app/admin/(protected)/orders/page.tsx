@@ -2,14 +2,14 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { Filter, Package, Search } from 'lucide-react'
+import { AlertTriangle, Filter, Search } from 'lucide-react'
 import type { OrderStatus } from '@/types'
 import { first } from '@/lib/supabase/helpers'
 
 export const metadata: Metadata = { title: 'Orders' }
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
-  placed: { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
+  placed: { bg: 'rgba(245,158,11,0.18)', text: '#FCD34D' },
   pickup_scheduled: { bg: 'rgba(47,111,237,0.18)', text: '#BFDBFE' },
   picked_up: { bg: 'rgba(245,158,11,0.18)', text: '#FCD34D' },
   processing: { bg: 'rgba(14,165,164,0.18)', text: '#99F6E4' },
@@ -43,7 +43,19 @@ export default async function AdminOrdersPage({
   if (searchParams.date) query = query.eq('pickup_date', searchParams.date)
   if (searchParams.zone) query = query.eq('zone_id', searchParams.zone)
 
-  const { data: orders } = await query
+  const [ordersRes, pendingRes] = await Promise.all([
+    query,
+    adminClient
+      .from('orders')
+      .select('id, order_number, status, pickup_date, created_at, user:users(name, phone), pickup_slot:pickup_slots(label)')
+      .is('rider_id', null)
+      .in('status', ['placed', 'pickup_scheduled'])
+      .order('created_at', { ascending: false })
+      .limit(8),
+  ])
+
+  const orders = ordersRes.data
+  const pendingOrders = (pendingRes.data || []) as unknown as Array<Record<string, unknown>>
 
   const ALL_STATUSES: OrderStatus[] = [
     'placed', 'pickup_scheduled', 'picked_up', 'processing',
@@ -84,6 +96,31 @@ export default async function AdminOrdersPage({
           ))}
         </div>
       </section>
+
+      {pendingOrders.length > 0 ? (
+        <section className="mt-6 admin-card rounded-[28px] p-5 lg:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-amber-300"><AlertTriangle className="h-4 w-4" /> <span className="text-sm font-bold uppercase tracking-[0.18em]">Needs rider assignment</span></div>
+              <p className="mt-2 text-sm" style={{ color: '#94A3B8' }}>Placed and scheduled orders with no rider assigned are surfaced here first.</p>
+            </div>
+            <span className="status-pill" style={{ background: 'rgba(245,158,11,0.18)', color: '#FCD34D' }}>{pendingOrders.length} pending</span>
+          </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            {pendingOrders.map((order) => {
+              const user = first(order.user as { name: string; phone: string } | { name: string; phone: string }[] | null)
+              const pickupSlot = first(order.pickup_slot as { label: string } | { label: string }[] | null)
+              return (
+                <Link key={order.id as string} href={`/admin/orders/${order.id as string}`} className="block rounded-[24px] border border-amber-400/20 bg-amber-400/10 p-4 transition hover:bg-amber-400/15">
+                  <div className="font-bold text-white">{order.order_number as string}</div>
+                  <div className="mt-2 text-sm" style={{ color: '#FDE68A' }}>{user?.name || 'Unknown customer'}</div>
+                  <div className="mt-1 text-sm" style={{ color: '#FDE68A' }}>{format(new Date(order.pickup_date as string), 'd MMM')} • {pickupSlot?.label || 'No slot'}</div>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-6 admin-card rounded-[28px] p-4 lg:p-5">
         {(!orders || orders.length === 0) ? (

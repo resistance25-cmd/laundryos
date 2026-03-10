@@ -1,7 +1,6 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { ChevronLeft, Clock, Loader2, MapPin, Save, User } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -26,6 +25,13 @@ type OrderData = {
   items: { id: string; item_name: string | null; service_type: string; quantity: number; total_price: number }[]
 }
 
+type OrderPayload = {
+  order: OrderData
+  riders: { id: string; name: string }[]
+  partners: { id: string; name: string }[]
+  statusHistory: { status: string; created_at: string; changed_by_role: string | null }[]
+}
+
 export default function AdminOrderDetailPage({ params }: { params: { orderId: string } }) {
   const { orderId } = params
   const [order, setOrder] = useState<OrderData | null>(null)
@@ -40,43 +46,46 @@ export default function AdminOrderDetailPage({ params }: { params: { orderId: st
   const [loading, setLoading] = useState<boolean>(true)
   const [saving, setSaving] = useState<boolean>(false)
 
-  const supabase = createClient()
-
   useEffect(() => {
     async function load(): Promise<void> {
-      const [orderRes, ridersRes, partnersRes, historyRes] = await Promise.all([
-        supabase.from('orders').select(`*, user:users(name, phone, email), address:addresses(line1, line2, landmark), pickup_slot:pickup_slots(label), items:order_items(*)`).eq('id', orderId).single(),
-        supabase.from('riders').select('id, name').eq('is_active', true),
-        supabase.from('laundry_partners').select('id, name').eq('is_active', true),
-        supabase.from('order_status_history').select('status, created_at, changed_by_role').eq('order_id', orderId).order('created_at', { ascending: false }),
-      ])
+      setLoading(true)
+      try {
+        const res = await fetch(`/api/admin/orders/${orderId}`, { cache: 'no-store' })
+        const data = await res.json() as OrderPayload & { error?: string }
 
-      if (orderRes.data) {
-        const current = orderRes.data as unknown as OrderData
-        setOrder(current)
-        setSelectedStatus(current.status as OrderStatus)
-        setSelectedRiderId(current.rider_id || '')
-        setSelectedDeliveryRiderId(current.delivery_rider_id || '')
-        setSelectedPartnerId(current.laundry_partner_id || '')
-        setAdminNotes(current.admin_notes || '')
+        if (!res.ok || !data.order) {
+          toast.error(data.error || 'Failed to load order')
+          setOrder(null)
+          return
+        }
+
+        setOrder(data.order)
+        setRiders(data.riders || [])
+        setPartners(data.partners || [])
+        setStatusHistory(data.statusHistory || [])
+        setSelectedStatus(data.order.status as OrderStatus)
+        setSelectedRiderId(data.order.rider_id || '')
+        setSelectedDeliveryRiderId(data.order.delivery_rider_id || '')
+        setSelectedPartnerId(data.order.laundry_partner_id || '')
+        setAdminNotes(data.order.admin_notes || '')
+      } catch {
+        toast.error('Failed to load order')
+        setOrder(null)
+      } finally {
+        setLoading(false)
       }
-      setRiders((ridersRes.data || []) as { id: string; name: string }[])
-      setPartners((partnersRes.data || []) as { id: string; name: string }[])
-      setStatusHistory((historyRes.data || []) as { status: string; created_at: string; changed_by_role: string | null }[])
-      setLoading(false)
     }
     void load()
-  }, [orderId, supabase])
+  }, [orderId])
 
   async function handleSave(): Promise<void> {
     if (saving || !order) return
     setSaving(true)
     try {
-      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/orders/status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, status: selectedStatus, changedBy: session?.user.id, changedByRole: 'admin', notes: adminNotes || undefined }),
+        body: JSON.stringify({ orderId, status: selectedStatus, changedByRole: 'admin', notes: adminNotes || undefined }),
       })
       if (!res.ok) { toast.error('Failed to update status'); return }
 
