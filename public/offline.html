@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LaundryOS — Offline</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0B0D17;
+      color: #F0F2FF;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #F0F2FF;
+    }
+
+    p {
+      font-size: 15px;
+      color: #94A3B8;
+      line-height: 1.6;
+      max-width: 280px;
+      margin: 0 auto 32px;
+    }
+
+    .retry-btn {
+      background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 9999px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .retry-btn:hover {
+      opacity: 0.9;
+    }
+
+    .retry-btn:active {
+      opacity: 0.8;
+      transform: scale(0.98);
+    }
+
+    .logo {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      font-weight: 800;
+      color: #6366F1;
+      letter-spacing: -0.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">LaundryOS</div>
+
+  <div class="icon">🧺</div>
+
+  <h1>You're Offline</h1>
+  <p>
+    No internet connection. Please check your network and try again.
+    Your laundry can wait — we'll be here when you're back online.
+  </p>
+
+  <button class="retry-btn" onclick="window.location.reload()">
+    Try Again
+  </button>
+</body>
+</html>
