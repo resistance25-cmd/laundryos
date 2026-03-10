@@ -1,8 +1,6 @@
-// src/app/admin/riders/[riderId]/page.tsx
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/client'
 import { ChevronLeft, Loader2, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -31,33 +29,32 @@ export default function RiderDetailPage({ params }: { params: { riderId: string 
       ])
 
       if (riderRes.data) {
-        const r = riderRes.data
-        setRider(r)
-        setName(r.name || '')
-        setPhone(r.phone || '')
-        setZoneId(r.zone_id || '')
-        setVehicleType(r.vehicle_type || 'bike')
-        setVehicleNumber(r.vehicle_number || '')
-        setIsActive(r.is_active)
+        const current = riderRes.data
+        setRider(current)
+        setName(current.name || '')
+        setPhone(current.phone || '')
+        setZoneId(current.zone_id || '')
+        setVehicleType(current.vehicle_type || 'bike')
+        setVehicleNumber(current.vehicle_number || '')
+        setIsActive(current.is_active)
       }
       setZones(zonesRes.data || [])
       setLoading(false)
     }
     void load()
-  }, [riderId])
+  }, [riderId, supabase])
 
   async function handleSave(): Promise<void> {
     if (saving) return
     setSaving(true)
     try {
-      // Use admin API route for this update
       const res = await fetch('/api/riders/create', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ riderId, name, phone, zoneId: zoneId || null, vehicleType: vehicleType as VehicleType, vehicleNumber: vehicleNumber || null, isActive }),
       })
       if (!res.ok) { toast.error('Failed to update'); return }
-      toast.success('Rider updated!')
+      toast.success('Rider updated')
     } catch {
       toast.error('Something went wrong')
     } finally {
@@ -65,75 +62,62 @@ export default function RiderDetailPage({ params }: { params: { riderId: string 
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin" style={{ color: '#6366F1' }} /></div>
-  if (!rider) return <div style={{ color: '#EF4444' }}>Rider not found</div>
+  if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-sky-300" /></div>
+  if (!rider) return <div style={{ color: '#f87171' }}>Rider not found</div>
 
   return (
-    <div className="max-w-lg">
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => { window.location.href = '/admin/riders' }}
-          className="p-2 rounded-lg" style={{ background: '#13151C', color: '#94A3B8' }} aria-label="Back">
-          <ChevronLeft className="w-4 h-4" />
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-5 flex items-center gap-3">
+        <button onClick={() => { window.location.href = '/admin/riders' }} className="app-icon-wrap" aria-label="Back">
+          <ChevronLeft className="h-4 w-4" />
         </button>
         <div>
-          <h1 className="text-xl font-bold" style={{ color: '#F1F5F9' }}>{rider.name as string}</h1>
-          <p className="text-xs" style={{ color: '#64748B' }}>{rider.total_deliveries as number} deliveries · ⭐ {(rider.rating as number).toFixed(1)}</p>
+          <h1 className="text-2xl font-bold text-white">{rider.name as string}</h1>
+          <p className="text-sm" style={{ color: '#94A3B8' }}>{rider.total_deliveries as number} deliveries • {Number(rider.rating || 0).toFixed(1)} rating</p>
         </div>
       </div>
 
-      <div className="admin-card rounded-xl p-5 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="admin-card rounded-[28px] p-6">
+        <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: '#94A3B8' }}>Name</label>
-            <input type="text" value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              className="admin-input w-full" />
+            <label className="mb-2 block text-sm font-semibold text-slate-300">Name</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="admin-input w-full" />
           </div>
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: '#94A3B8' }}>Phone</label>
-            <input type="tel" value={phone}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
-              className="admin-input w-full" />
+            <label className="mb-2 block text-sm font-semibold text-slate-300">Phone</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="admin-input w-full" />
           </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium mb-1" style={{ color: '#94A3B8' }}>Zone</label>
-          <select value={zoneId}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setZoneId(e.target.value)}
-            className="admin-input w-full">
-            <option value="">No zone</option>
-            {zones.map((z) => <option key={z.id} value={z.id}>{z.name}</option>)}
-          </select>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: '#94A3B8' }}>Vehicle</label>
-            <select value={vehicleType}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setVehicleType(e.target.value)}
-              className="admin-input w-full">
+            <label className="mb-2 block text-sm font-semibold text-slate-300">Zone</label>
+            <select value={zoneId} onChange={(e) => setZoneId(e.target.value)} className="admin-input w-full">
+              <option value="">No zone</option>
+              {zones.map((zone) => <option key={zone.id} value={zone.id}>{zone.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-300">Vehicle</label>
+            <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} className="admin-input w-full">
               <option value="bike">Bike</option>
               <option value="cycle">Cycle</option>
               <option value="auto">Auto</option>
             </select>
           </div>
-          <div>
-            <label className="block text-xs font-medium mb-1" style={{ color: '#94A3B8' }}>Vehicle Number</label>
-            <input type="text" value={vehicleNumber}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVehicleNumber(e.target.value)}
-              className="admin-input w-full" />
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-semibold text-slate-300">Vehicle number</label>
+            <input type="text" value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} className="admin-input w-full" />
           </div>
         </div>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={isActive}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
-            className="w-4 h-4 accent-indigo-500" />
-          <span className="text-sm" style={{ color: '#CBD5E1' }}>Rider is active</span>
+
+        <label className="mt-4 flex items-center gap-2 text-sm" style={{ color: '#cbd5e1' }}>
+          <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4 accent-blue-500" />
+          Rider is active and can receive assignments
         </label>
-        <button onClick={handleSave} disabled={saving}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white"
-          style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}>
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Save Changes</>}
-        </button>
+
+        <div className="mt-6 flex justify-end">
+          <button onClick={handleSave} disabled={saving} className="btn-primary">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Save changes</>}
+          </button>
+        </div>
       </div>
     </div>
   )
