@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AdminSideNav from './AdminSideNav'
 import AdminMobileNav from './AdminMobileNav'
@@ -29,10 +29,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-panel min-h-screen flex">
       <AdminSideNav admin={adminProfile} />
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
+      <div className="flex-1 min-h-screen lg:ml-72">
         <AdminMobileNav admin={adminProfile} />
-        <main className="flex-1 p-4 lg:p-6 pb-24 lg:pb-6">{children}</main>
+        <main className="px-4 pb-24 pt-4 lg:px-8 lg:py-8">{children}</main>
       </div>
     </div>
   )
 }
+

@@ -1,10 +1,10 @@
-// src/app/(customer)/profile/edit/page.tsx
-'use client'
+﻿'use client'
 
 import { useState, useEffect, FormEvent } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronLeft, Loader2, Check } from 'lucide-react'
+import { Check, ChevronLeft, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import CustomerBottomNav from '@/components/app/CustomerBottomNav'
 
 export default function EditProfilePage() {
   const [name, setName] = useState<string>('')
@@ -33,7 +33,7 @@ export default function EditProfilePage() {
       setLoading(false)
     }
     void load()
-  }, [])
+  }, [supabase])
 
   async function handleSave(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -51,7 +51,7 @@ export default function EditProfilePage() {
 
       if (error) { toast.error('Failed to update profile'); return }
 
-      toast.success('Profile updated!')
+      toast.success('Profile updated')
       window.location.href = '/profile'
     } catch {
       toast.error('Something went wrong')
@@ -61,48 +61,40 @@ export default function EditProfilePage() {
   }
 
   if (loading) {
-    return (
-      <div className="customer-dark min-h-screen flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#6366F1' }} />
-      </div>
-    )
+    return <div className="app-screen app-screen--customer flex items-center justify-center"><Loader2 className="h-7 w-7 animate-spin" style={{ color: 'var(--app-primary)' }} /></div>
   }
 
   return (
-    <div className="customer-dark min-h-screen">
-      <header className="sticky top-0 z-10 glass-dark px-4 pt-12 pb-4 safe-top">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
-          <button onClick={() => { window.location.href = '/profile' }}
-            className="p-2 rounded-full" style={{ background: '#1A1E30' }} aria-label="Back">
-            <ChevronLeft className="w-5 h-5 text-white" />
+    <div className="app-screen app-screen--customer">
+      <header className="app-topbar safe-top">
+        <div className="app-topbar__inner app-topbar__inner--phone flex items-center gap-3">
+          <button onClick={() => { window.location.href = '/profile' }} className="app-icon-wrap" aria-label="Back">
+            <ChevronLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold text-white">Edit Profile</h1>
+          <div>
+            <span className="app-kicker">Profile edit</span>
+            <h1 className="app-title text-2xl">Update your details</h1>
+          </div>
         </div>
       </header>
 
-      <div className="px-4 max-w-lg mx-auto pt-6">
-        <form onSubmit={handleSave} className="space-y-4">
+      <main className="app-shell app-shell--phone">
+        <form onSubmit={handleSave} className="app-panel space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1.5" style={{ color: '#CBD5E1' }}>
-              Full name
-            </label>
-            <input id="name" type="text" value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              className="input-dark" autoComplete="name" required />
+            <label htmlFor="name" className="mb-2 block text-sm font-semibold" style={{ color: 'var(--app-text)' }}>Full name</label>
+            <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="input-dark" autoComplete="name" required />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1.5" style={{ color: '#CBD5E1' }}>
-              Email address
-            </label>
-            <input id="email" type="email" value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-              className="input-dark" autoComplete="email" />
+            <label htmlFor="email" className="mb-2 block text-sm font-semibold" style={{ color: 'var(--app-text)' }}>Email address</label>
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input-dark" autoComplete="email" />
           </div>
-          <button type="submit" disabled={saving} className="btn-primary w-full mt-2 py-4">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4" /> Save Changes</>}
+          <button type="submit" disabled={saving} className="btn-primary w-full">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4" /> Save changes</>}
           </button>
         </form>
-      </div>
+      </main>
+
+      <CustomerBottomNav active="profile" />
     </div>
   )
 }

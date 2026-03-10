@@ -1,13 +1,23 @@
-// src/app/(customer)/dashboard/DashboardClient.tsx
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { formatDistanceToNow, differenceInDays } from 'date-fns'
 import {
-  Plus, Package, ChevronRight, Sparkles,
-  WashingMachine, Wind, Shirt, Clock, Bell
+  ArrowUpRight,
+  Bell,
+  ChevronRight,
+  Clock3,
+  CreditCard,
+  Package,
+  Plus,
+  Shirt,
+  Sparkles,
+  Wallet,
+  WashingMachine,
+  Wind,
 } from 'lucide-react'
 import type { UserSubscription, OrderStatus } from '@/types'
+import CustomerBottomNav from '@/components/app/CustomerBottomNav'
 
 function first<T>(val: T | T[] | null | undefined): T | null {
   if (!val) return null
@@ -39,24 +49,24 @@ interface Props {
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   placed: 'Confirmed',
-  pickup_scheduled: 'Pickup Scheduled',
-  picked_up: 'Picked Up',
-  processing: 'Washing',
+  pickup_scheduled: 'Pickup scheduled',
+  picked_up: 'Picked up',
+  processing: 'Processing',
   ready_for_delivery: 'Ready',
-  out_for_delivery: 'Out for Delivery',
+  out_for_delivery: 'Out for delivery',
   delivered: 'Delivered',
   cancelled: 'Cancelled',
 }
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
-  placed:               { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
-  pickup_scheduled:     { bg: 'rgba(99,102,241,0.15)', text: '#818CF8' },
-  picked_up:            { bg: 'rgba(245,158,11,0.15)', text: '#FCD34D' },
-  processing:           { bg: 'rgba(245,158,11,0.2)',  text: '#F59E0B' },
-  ready_for_delivery:   { bg: 'rgba(16,185,129,0.15)', text: '#34D399' },
-  out_for_delivery:     { bg: 'rgba(99,102,241,0.2)',  text: '#6366F1' },
-  delivered:            { bg: 'rgba(5,150,105,0.2)',   text: '#059669' },
-  cancelled:            { bg: 'rgba(239,68,68,0.15)',  text: '#EF4444' },
+  placed: { bg: 'rgba(100,116,139,0.14)', text: '#94A3B8' },
+  pickup_scheduled: { bg: 'rgba(47,111,237,0.14)', text: '#2F6FED' },
+  picked_up: { bg: 'rgba(245,158,11,0.14)', text: '#D97706' },
+  processing: { bg: 'rgba(14,165,164,0.14)', text: '#0F766E' },
+  ready_for_delivery: { bg: 'rgba(34,197,94,0.14)', text: '#16A34A' },
+  out_for_delivery: { bg: 'rgba(168,85,247,0.14)', text: '#9333EA' },
+  delivered: { bg: 'rgba(22,163,74,0.14)', text: '#15803D' },
+  cancelled: { bg: 'rgba(239,68,68,0.14)', text: '#DC2626' },
 }
 
 const ACTIVE_STATUSES: OrderStatus[] = [
@@ -83,248 +93,209 @@ export default function DashboardClient({ user, subscription, orders }: Props) {
     ? differenceInDays(new Date(subscription.expires_at), new Date())
     : 0
 
+  const quickStats = [
+    {
+      label: 'Wallet balance',
+      value: `Rs ${user.wallet_balance}`,
+      icon: <Wallet className="h-5 w-5" />,
+    },
+    {
+      label: 'Live orders',
+      value: `${activeOrders.length}`,
+      icon: <Package className="h-5 w-5" />,
+    },
+  ]
+
   return (
-    <div className="customer-dark min-h-screen pb-24">
-      {/* Header */}
-      <header
-        className="sticky top-0 z-10 px-4 pt-12 pb-4 glass-dark safe-top"
-      >
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <div>
-            <p className="text-sm" style={{ color: '#94A3B8' }}>{getGreeting()}</p>
-            <h1 className="text-xl font-bold text-white">
-              {getFirstName(user.name)} 👋
-            </h1>
+    <div className="app-screen app-screen--customer">
+      <header className="app-topbar safe-top">
+        <div className="app-topbar__inner app-topbar__inner--phone">
+          <div className="app-card__row">
+            <div>
+              <span className="app-kicker">Customer app</span>
+              <h1 className="app-title">{getGreeting()}, {getFirstName(user.name)}</h1>
+              <p className="app-subtitle">Everything you need for bookings, plans, tracking, and reorders now lives in one app-style home.</p>
+            </div>
+            <Link href="/profile" className="app-avatar" aria-label="Open profile">
+              {user.name.charAt(0).toUpperCase()}
+            </Link>
           </div>
-          <Link
-            href="/notifications"
-            className="relative p-2 rounded-full"
-            style={{ background: '#1A1E30' }}
-          >
-            <Bell className="w-5 h-5" style={{ color: '#94A3B8' }} />
-          </Link>
         </div>
       </header>
 
-      <div className="px-4 max-w-lg mx-auto space-y-5 pt-4">
+      <main className="app-shell app-shell--phone">
+        <section className="customer-hero">
+          <div className="app-card__row" style={{ alignItems: 'flex-start' }}>
+            <div>
+              <p className="m-0 text-sm" style={{ opacity: 0.78 }}>Today&apos;s control center</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-tight">Book faster. Track cleaner. Stay in control.</h2>
+            </div>
+            <Link href="/book" className="app-pill" style={{ background: 'rgba(255,255,255,0.16)', color: 'white' }}>
+              <Plus className="h-4 w-4" />
+              New pickup
+            </Link>
+          </div>
 
-        {/* Subscription Card */}
-        {subscription ? (
-          <div
-            className="rounded-2xl p-5 relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #3730A3 0%, #5B21B6 100%)' }}
-          >
-            {/* Decorative circles */}
-            <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-20"
-              style={{ background: 'white' }} />
-            <div className="absolute -bottom-12 -left-6 w-40 h-40 rounded-full opacity-10"
-              style={{ background: 'white' }} />
-
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-4 h-4 text-yellow-300" />
-                    <span className="text-xs font-semibold text-yellow-300 uppercase tracking-wider">
-                      {first(subscription.plan)?.name} Plan
-                    </span>
-                  </div>
-                  <p className="text-white text-sm opacity-80">
-                    {expiryDays > 0
-                      ? `Expires in ${expiryDays} day${expiryDays !== 1 ? 's' : ''}`
-                      : 'Expiring today'}
-                  </p>
+          <div className="customer-quick-grid mt-5">
+            {quickStats.map((stat) => (
+              <div key={stat.label} className="customer-chip">
+                <div className="flex items-center gap-2 text-sm" style={{ opacity: 0.82 }}>
+                  {stat.icon}
+                  <span>{stat.label}</span>
                 </div>
-                <Link
-                  href="/subscription"
-                  className="text-xs font-semibold text-white opacity-70 underline"
-                >
-                  Manage
-                </Link>
+                <div className="mt-2 text-2xl font-bold">{stat.value}</div>
               </div>
+            ))}
+          </div>
 
-              {/* Credits */}
-              <div className="grid grid-cols-3 gap-3">
-                <CreditBadge
-                  icon={<WashingMachine className="w-4 h-4" />}
-                  label="Wash"
-                  value={subscription.wash_credits_remaining}
-                />
-                <CreditBadge
-                  icon={<Shirt className="w-4 h-4" />}
-                  label="Press"
-                  value={subscription.press_credits_remaining}
-                />
-                <CreditBadge
-                  icon={<Wind className="w-4 h-4" />}
-                  label="Dry Clean"
-                  value={subscription.dry_clean_credits_remaining}
-                />
-              </div>
+          <div className="customer-hero__chips mt-5">
+            <div className="app-pill" style={{ background: 'rgba(255,255,255,0.12)', color: 'white' }}>
+              <Sparkles className="h-4 w-4" />
+              Premium garment care
+            </div>
+            <div className="app-pill" style={{ background: 'rgba(255,255,255,0.12)', color: 'white' }}>
+              <Bell className="h-4 w-4" />
+              Real-time order updates
             </div>
           </div>
-        ) : (
-          /* No subscription — upsell */
-          <Link href="/subscription">
-            <div
-              className="rounded-2xl p-5 flex items-center justify-between"
-              style={{ background: '#10131F', border: '1.5px dashed #1E2340' }}
-            >
-              <div>
-                <p className="font-semibold text-white">Get a Plan</p>
-                <p className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>
-                  Save up to 40% on laundry
-                </p>
+        </section>
+
+        <section className="app-section">
+          {subscription ? (
+            <div className="app-card app-card--accent">
+              <div className="app-section__header">
+                <div>
+                  <p className="app-kicker">Membership</p>
+                  <h3 className="m-0 mt-1 text-xl font-bold" style={{ color: 'var(--app-text)' }}>{first(subscription.plan)?.name} plan</h3>
+                </div>
+                <Link href="/subscription" className="app-action-link">Manage</Link>
               </div>
-              <div
-                className="flex items-center justify-center w-10 h-10 rounded-full"
-                style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}
-              >
-                <ChevronRight className="w-5 h-5 text-white" />
+              <p className="app-note mt-2">
+                {expiryDays > 0
+                  ? `Expires in ${expiryDays} day${expiryDays !== 1 ? 's' : ''}`
+                  : 'Expiring today'}
+              </p>
+              <div className="app-grid app-grid--3 mt-4">
+                <div className="app-stat">
+                  <div className="app-icon-wrap"><WashingMachine className="h-5 w-5" /></div>
+                  <div className="app-stat__value">{subscription.wash_credits_remaining}</div>
+                  <div className="app-stat__label">Wash credits</div>
+                </div>
+                <div className="app-stat">
+                  <div className="app-icon-wrap"><Shirt className="h-5 w-5" /></div>
+                  <div className="app-stat__value">{subscription.press_credits_remaining}</div>
+                  <div className="app-stat__label">Press credits</div>
+                </div>
+                <div className="app-stat">
+                  <div className="app-icon-wrap"><Wind className="h-5 w-5" /></div>
+                  <div className="app-stat__value">{subscription.dry_clean_credits_remaining}</div>
+                  <div className="app-stat__label">Dry clean</div>
+                </div>
               </div>
             </div>
-          </Link>
-        )}
+          ) : (
+            <Link href="/subscription" className="app-card app-card--warm block">
+              <div className="app-card__row">
+                <div>
+                  <p className="app-kicker">Upgrade your routine</p>
+                  <h3 className="m-0 mt-1 text-xl font-bold" style={{ color: 'var(--app-text)' }}>Add a plan and save on repeat laundry</h3>
+                  <p className="app-note mt-2">Get smoother weekly bookings, lower pricing, and a cleaner credits experience.</p>
+                </div>
+                <ArrowUpRight className="h-5 w-5" style={{ color: 'var(--app-warm)' }} />
+              </div>
+            </Link>
+          )}
+        </section>
 
-        {/* Quick Book Button */}
-        <Link href="/book" className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-base">
-          <Plus className="w-5 h-5" />
-          Book a Pickup
-        </Link>
+        <section className="app-section">
+          <div className="app-grid app-grid--2">
+            <Link href="/book" className="app-card block">
+              <div className="app-icon-wrap"><Plus className="h-5 w-5" /></div>
+              <h3 className="mt-4 text-lg font-bold" style={{ color: 'var(--app-text)' }}>Book pickup</h3>
+              <p className="app-note mt-1">Choose items, address, slot, and payment in a smoother mobile flow.</p>
+            </Link>
+            <Link href="/orders" className="app-card block">
+              <div className="app-icon-wrap"><Clock3 className="h-5 w-5" /></div>
+              <h3 className="mt-4 text-lg font-bold" style={{ color: 'var(--app-text)' }}>Track orders</h3>
+              <p className="app-note mt-1">Watch your active jobs move from pickup to delivery without hunting around.</p>
+            </Link>
+          </div>
+        </section>
 
-        {/* Active Orders */}
         {activeOrders.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold mb-3 uppercase tracking-wider" style={{ color: '#64748B' }}>
-              Active Orders
-            </h2>
-            <div className="space-y-3">
+          <section className="app-section">
+            <div className="app-section__header">
+              <h2 className="app-section__title">Active orders</h2>
+              <Link href="/orders" className="app-action-link">View all</Link>
+            </div>
+            <div className="app-list">
               {activeOrders.map((order) => (
-                <OrderRow key={order.id} order={order} />
+                <OrderCard key={order.id} order={order} />
               ))}
             </div>
           </section>
         )}
 
-        {/* Recent Orders */}
-        {recentOrders.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#64748B' }}>
-                Recent Orders
-              </h2>
-              <Link href="/orders" className="text-xs font-semibold" style={{ color: '#6366F1' }}>
-                View all
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <OrderRow key={order.id} order={order} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Empty state */}
-        {orders.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="w-14 h-14 mx-auto mb-4 opacity-30" style={{ color: '#6366F1' }} />
-            <p className="font-semibold text-white">No orders yet</p>
-            <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>
-              Book your first laundry pickup!
-            </p>
+        <section className="app-section">
+          <div className="app-section__header">
+            <h2 className="app-section__title">Recent activity</h2>
+            <Link href="/orders" className="app-action-link">Order history</Link>
           </div>
-        )}
-      </div>
 
-      {/* Bottom Nav */}
-      <BottomNav active="home" />
+          {recentOrders.length > 0 ? (
+            <div className="app-list">
+              {recentOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="app-card app-empty">
+              <Package className="h-12 w-12" />
+              <h3 className="text-lg font-bold" style={{ color: 'var(--app-text)' }}>No orders yet</h3>
+              <p className="app-note mt-2">Your first pickup will show up here with cleaner status updates and quick actions.</p>
+              <Link href="/book" className="btn-primary mt-5">Book your first pickup</Link>
+            </div>
+          ) : null}
+        </section>
+      </main>
+
+      <CustomerBottomNav active="home" />
     </div>
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────
-
-function CreditBadge({ icon, label, value }: {
-  icon: React.ReactNode
-  label: string
-  value: number
-}) {
-  return (
-    <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.1)' }}>
-      <div className="flex justify-center mb-1 text-white opacity-80">{icon}</div>
-      <p className="text-lg font-bold text-white">{value}</p>
-      <p className="text-xs text-white opacity-60">{label}</p>
-    </div>
-  )
-}
-
-function OrderRow({ order }: { order: DashboardOrder }) {
+function OrderCard({ order }: { order: DashboardOrder }) {
   const colors = STATUS_COLORS[order.status]
+
   return (
-    <Link href={`/orders/${order.id}`}>
-      <div
-        className="rounded-2xl p-4 flex items-center justify-between"
-        style={{ background: '#10131F', border: '1px solid #1E2340' }}
-      >
+    <Link href={`/orders/${order.id}`} className="app-card block">
+      <div className="app-card__row">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: 'rgba(99,102,241,0.15)' }}
-          >
-            <WashingMachine className="w-5 h-5" style={{ color: '#6366F1' }} />
+          <div className="app-icon-wrap">
+            {order.total > 0 ? <CreditCard className="h-5 w-5" /> : <WashingMachine className="h-5 w-5" />}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{order.order_number}</p>
-            <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#64748B' }}>
-              <Clock className="w-3 h-3" />
+            <div className="font-bold" style={{ color: 'var(--app-text)' }}>{order.order_number}</div>
+            <div className="app-meta mt-1 flex items-center gap-1 text-sm">
+              <Clock3 className="h-3.5 w-3.5" />
               {formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}
-            </p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="text-xs font-semibold px-2.5 py-1 rounded-full"
-            style={{ background: colors.bg, color: colors.text }}
-          >
-            {STATUS_LABELS[order.status]}
-          </span>
-          <ChevronRight className="w-4 h-4" style={{ color: '#64748B' }} />
-        </div>
+        <ChevronRight className="h-4 w-4" style={{ color: 'var(--app-text-muted)' }} />
       </div>
+      <div className="app-card__row mt-4">
+        <span className="status-pill" style={{ background: colors.bg, color: colors.text }}>
+          {STATUS_LABELS[order.status]}
+        </span>
+        <span className="text-sm font-bold" style={{ color: 'var(--app-text)' }}>
+          {order.total > 0 ? `Rs ${order.total}` : 'Subscription'}
+        </span>
+      </div>
+      {order.pickup_slot?.label && (
+        <p className="app-note mt-3">Pickup window: {order.pickup_slot.label}</p>
+      )}
     </Link>
   )
 }
 
-function BottomNav({ active }: { active: 'home' | 'book' | 'orders' | 'profile' }) {
-  const items = [
-    { key: 'home', label: 'Home', href: '/dashboard', icon: <WashingMachine className="w-5 h-5" /> },
-    { key: 'book', label: 'Book', href: '/book', icon: <Plus className="w-5 h-5" /> },
-    { key: 'orders', label: 'Orders', href: '/orders', icon: <Package className="w-5 h-5" /> },
-    { key: 'profile', label: 'Profile', href: '/profile', icon: <Shirt className="w-5 h-5" /> },
-  ] as const
-
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 safe-bottom glass-dark border-t"
-      style={{ borderColor: '#1E2340' }}
-    >
-      <div className="flex items-center justify-around max-w-lg mx-auto h-16">
-        {items.map((item) => {
-          const isActive = active === item.key
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all"
-              style={{ color: isActive ? '#6366F1' : '#64748B' }}
-            >
-              {item.icon}
-              <span className="text-xs font-medium">{item.label}</span>
-            </Link>
-          )
-        })}
-      </div>
-    </nav>
-  )
-}

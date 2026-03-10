@@ -1,7 +1,6 @@
-// src/app/rider/profile/page.tsx
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Star, Bike, MapPin, LogOut } from 'lucide-react'
+import { Bike, LogOut, MapPin, Star } from 'lucide-react'
 import type { Metadata } from 'next'
 import { first } from '@/lib/supabase/helpers'
 
@@ -25,67 +24,61 @@ export default async function RiderProfilePage() {
   const zone = first(rider.zone)
 
   return (
-    <div className="pb-24 max-w-lg mx-auto">
-      <header className="px-4 pt-12 pb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
-            style={{ background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white' }}>
-            {rider.name.charAt(0)}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: '#F0FDF4' }}>{rider.name}</h1>
-            <p className="text-sm" style={{ color: '#64748B' }}>{rider.phone}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <Star className="w-3.5 h-3.5" style={{ color: '#F59E0B' }} />
-              <span className="text-xs font-semibold" style={{ color: '#F59E0B' }}>
-                {rider.rating.toFixed(1)} rating
-              </span>
-            </div>
-          </div>
+    <div className="app-screen app-screen--rider">
+      <header className="app-topbar safe-top" style={{ background: 'rgba(8,19,29,0.72)', borderBottomColor: 'rgba(148,163,184,0.12)' }}>
+        <div className="app-topbar__inner app-topbar__inner--phone">
+          <span className="app-kicker">Rider account</span>
+          <h1 className="app-title text-white">Profile and rider stats</h1>
         </div>
       </header>
 
-      <div className="px-4 space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Total Deliveries', value: rider.total_deliveries, color: '#10B981' },
-            { label: 'Rating', value: `${rider.rating.toFixed(1)} ⭐`, color: '#F59E0B' },
-          ].map((stat) => (
-            <div key={stat.label} className="rounded-xl p-4 text-center"
-              style={{ background: '#13202E', border: '1px solid #1E3040' }}>
-              <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
-              <p className="text-xs mt-1" style={{ color: '#64748B' }}>{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-2xl overflow-hidden" style={{ background: '#13202E', border: '1px solid #1E3040' }}>
-          {[
-            { icon: <MapPin className="w-4 h-4" />, label: 'Zone', value: zone?.name || 'Not assigned' },
-            { icon: <Bike className="w-4 h-4" />, label: 'Vehicle', value: `${rider.vehicle_type ? rider.vehicle_type.charAt(0).toUpperCase() + rider.vehicle_type.slice(1) : 'Bike'}${rider.vehicle_number ? ` · ${rider.vehicle_number}` : ''}` },
-          ].map((row, i) => (
-            <div key={row.label} className="flex items-center gap-3 px-4 py-3.5"
-              style={{ borderBottom: i < 1 ? '1px solid #1E3040' : 'none' }}>
-              <span style={{ color: '#10B981' }}>{row.icon}</span>
-              <div>
-                <p className="text-xs" style={{ color: '#64748B' }}>{row.label}</p>
-                <p className="text-sm font-medium" style={{ color: '#F0FDF4' }}>{row.value}</p>
+      <main className="app-shell app-shell--phone">
+        <section className="rider-surface rounded-[30px] p-6">
+          <div className="flex items-center gap-4">
+            <div className="app-avatar" style={{ width: 64, height: 64 }}>{rider.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">{rider.name}</h2>
+              <p className="mt-1 text-sm text-slate-400">{rider.phone}</p>
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-amber-400/10 px-3 py-1 text-sm font-semibold text-amber-300">
+                <Star className="h-4 w-4" /> {rider.rating.toFixed(1)} rating
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <form action="/api/auth/signout" method="POST">
-          <button type="submit" className="w-full flex items-center gap-3 rounded-2xl p-4"
-            style={{ background: '#13202E', border: '1px solid #1E3040' }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(239,68,68,0.15)' }}>
-              <LogOut className="w-5 h-5" style={{ color: '#EF4444' }} />
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+              <div className="text-sm text-slate-400">Total deliveries</div>
+              <div className="mt-2 text-3xl font-extrabold text-white">{rider.total_deliveries}</div>
             </div>
-            <span className="font-semibold" style={{ color: '#EF4444' }}>Sign Out</span>
-          </button>
-        </form>
-      </div>
+            <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+              <div className="text-sm text-slate-400">Current vehicle</div>
+              <div className="mt-2 text-base font-semibold text-white">{`${rider.vehicle_type ? rider.vehicle_type.charAt(0).toUpperCase() + rider.vehicle_type.slice(1) : 'Bike'}${rider.vehicle_number ? ` • ${rider.vehicle_number}` : ''}`}</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-5 space-y-4">
+          <div className="rider-surface rounded-[28px] p-5">
+            <div className="flex items-center gap-3 text-white"><MapPin className="h-4 w-4 text-emerald-300" /> Zone</div>
+            <div className="mt-2 text-sm text-slate-400">{zone?.name || 'Not assigned'}</div>
+          </div>
+          <div className="rider-surface rounded-[28px] p-5">
+            <div className="flex items-center gap-3 text-white"><Bike className="h-4 w-4 text-sky-300" /> Equipment</div>
+            <div className="mt-2 text-sm text-slate-400">Keep your listed vehicle and route readiness updated with ops if anything changes.</div>
+          </div>
+          <form action="/api/auth/signout" method="POST">
+            <button type="submit" className="w-full rounded-[28px] border border-red-400/20 bg-red-500/10 p-5 text-left text-red-300 transition hover:bg-red-500/15">
+              <div className="flex items-center gap-3">
+                <LogOut className="h-5 w-5" />
+                <div>
+                  <div className="font-bold">Sign out</div>
+                  <div className="mt-1 text-sm text-red-200/80">Return to the shared login screen.</div>
+                </div>
+              </div>
+            </button>
+          </form>
+        </section>
+      </main>
     </div>
   )
 }

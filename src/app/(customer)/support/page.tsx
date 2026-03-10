@@ -1,13 +1,13 @@
-// src/app/(customer)/support/page.tsx
-'use client'
+﻿'use client'
 
 import { useState, useEffect, FormEvent, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ChevronLeft, Send, Loader2, MessageCircle } from 'lucide-react'
+import { ChevronLeft, Loader2, MessageCircle, Send } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow } from 'date-fns'
 import type { SupportTicket } from '@/types'
+import CustomerBottomNav from '@/components/app/CustomerBottomNav'
 
 function SupportContent() {
   const searchParams = useSearchParams()
@@ -43,7 +43,7 @@ function SupportContent() {
       }
     }
     void load()
-  }, [orderId])
+  }, [orderId, supabase])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -61,8 +61,10 @@ function SupportContent() {
 
       if (error) { toast.error('Failed to submit ticket'); return }
       setTickets((prev) => [data as SupportTicket, ...prev])
-      toast.success('Support ticket created!')
-      setSubject(''); setMessage(''); setShowForm(false)
+      toast.success('Support ticket created')
+      setSubject('')
+      setMessage('')
+      setShowForm(false)
     } catch {
       toast.error('Something went wrong')
     } finally {
@@ -70,92 +72,80 @@ function SupportContent() {
     }
   }
 
-  if (loading) return <div className="customer-dark min-h-screen flex items-center justify-center">
-    <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#6366F1' }} />
-  </div>
+  if (loading) return <div className="app-screen app-screen--customer flex items-center justify-center"><Loader2 className="h-7 w-7 animate-spin" style={{ color: 'var(--app-primary)' }} /></div>
 
   const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
-    open:        { bg: 'rgba(99,102,241,0.15)', text: '#818CF8' },
-    in_progress: { bg: 'rgba(245,158,11,0.15)', text: '#F59E0B' },
-    resolved:    { bg: 'rgba(5,150,105,0.2)',   text: '#059669' },
+    open: { bg: 'rgba(47,111,237,0.14)', text: '#2F6FED' },
+    in_progress: { bg: 'rgba(245,158,11,0.14)', text: '#D97706' },
+    resolved: { bg: 'rgba(22,163,74,0.14)', text: '#15803D' },
   }
 
   return (
-    <div className="customer-dark min-h-screen pb-10">
-      <header className="sticky top-0 z-10 glass-dark px-4 pt-12 pb-4 safe-top">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+    <div className="app-screen app-screen--customer">
+      <header className="app-topbar safe-top">
+        <div className="app-topbar__inner app-topbar__inner--phone flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <button onClick={() => { window.location.href = '/dashboard' }}
-              className="p-2 rounded-full" style={{ background: '#1A1E30' }} aria-label="Back">
-              <ChevronLeft className="w-5 h-5 text-white" />
+            <button onClick={() => { window.location.href = '/profile' }} className="app-icon-wrap" aria-label="Back">
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-bold text-white">Support</h1>
+            <div>
+              <span className="app-kicker">Support</span>
+              <h1 className="app-title text-2xl">Customer help desk</h1>
+            </div>
           </div>
-          <button onClick={() => setShowForm(true)}
-            className="px-3 py-2 rounded-full text-sm font-semibold text-white"
-            style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}>
-            New Ticket
-          </button>
+          <button onClick={() => setShowForm(true)} className="btn-primary">New ticket</button>
         </div>
       </header>
 
-      <div className="px-4 max-w-lg mx-auto pt-4 space-y-4">
-        {/* New ticket form */}
-        {showForm && (
-          <form onSubmit={handleSubmit} className="rounded-2xl p-5 space-y-4"
-            style={{ background: '#10131F', border: '1.5px solid #6366F1' }}>
-            <h3 className="font-semibold text-white">New Support Request</h3>
-            <input type="text" value={subject}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
-              placeholder="Subject" className="input-dark" required />
-            <textarea value={message}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
-              placeholder="Describe your issue..." rows={4} className="input-dark resize-none" required />
+      <main className="app-shell app-shell--phone">
+        {showForm ? (
+          <form onSubmit={handleSubmit} className="app-panel space-y-4">
+            <div>
+              <span className="app-kicker">Raise a ticket</span>
+              <h2 className="mt-2 text-xl font-bold" style={{ color: 'var(--app-text)' }}>Tell us what went wrong</h2>
+            </div>
+            <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Subject" className="input-dark" required />
+            <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Describe your issue" rows={4} className="input-dark resize-none" required />
             <div className="flex gap-3">
               <button type="button" onClick={() => setShowForm(false)} className="btn-ghost flex-1">Cancel</button>
               <button type="submit" disabled={submitting} className="btn-primary flex-1">
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4" /> Submit</>}
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Submit</>}
               </button>
             </div>
           </form>
-        )}
+        ) : null}
 
-        {/* Ticket list */}
-        {tickets.length === 0 && !showForm && (
-          <div className="text-center py-16">
-            <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-20" style={{ color: '#6366F1' }} />
-            <p className="font-semibold text-white">No support tickets</p>
-            <p className="text-sm mt-1" style={{ color: '#94A3B8' }}>Need help? Create a ticket.</p>
+        {tickets.length === 0 && !showForm ? (
+          <div className="app-card app-empty">
+            <MessageCircle className="h-12 w-12" />
+            <h2 className="text-xl font-bold" style={{ color: 'var(--app-text)' }}>No support tickets</h2>
+            <p className="app-note mt-2">If a pickup, payment, or delivery ever feels off, open a ticket here and track the response.</p>
           </div>
-        )}
+        ) : null}
 
-        {tickets.map((ticket) => {
-          const styles = STATUS_STYLES[ticket.status] || STATUS_STYLES.open
-          return (
-            <div key={ticket.id} className="rounded-2xl p-4"
-              style={{ background: '#10131F', border: '1px solid #1E2340' }}>
-              <div className="flex items-start justify-between mb-2">
-                <p className="font-medium text-white text-sm">{ticket.subject}</p>
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium ml-2 flex-shrink-0"
-                  style={{ background: styles.bg, color: styles.text }}>
-                  {ticket.status.replace('_', ' ')}
-                </span>
+        <div className="app-list mt-4">
+          {tickets.map((ticket) => {
+            const styles = STATUS_STYLES[ticket.status] || STATUS_STYLES.open
+            return (
+              <div key={ticket.id} className="app-card">
+                <div className="app-card__row" style={{ alignItems: 'flex-start' }}>
+                  <div>
+                    <p className="font-bold" style={{ color: 'var(--app-text)' }}>{ticket.subject}</p>
+                    <p className="app-meta mt-2 text-sm">{formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}</p>
+                  </div>
+                  <span className="status-pill" style={{ background: styles.bg, color: styles.text }}>{ticket.status.replace('_', ' ')}</span>
+                </div>
               </div>
-              <p className="text-xs" style={{ color: '#64748B' }}>
-                {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
-              </p>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      </main>
+
+      <CustomerBottomNav active="profile" />
     </div>
   )
 }
 
 export default function SupportPage() {
-  return <Suspense fallback={
-    <div className="customer-dark min-h-screen flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin" style={{ color: '#6366F1' }} />
-    </div>
-  }><SupportContent /></Suspense>
+  return <Suspense fallback={<div className="app-screen app-screen--customer flex items-center justify-center"><Loader2 className="h-7 w-7 animate-spin" style={{ color: 'var(--app-primary)' }} /></div>}><SupportContent /></Suspense>
 }

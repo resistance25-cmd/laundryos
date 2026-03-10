@@ -1,24 +1,23 @@
-// src/app/admin/page.tsx
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { format, startOfDay, endOfDay, startOfMonth } from 'date-fns'
 import Link from 'next/link'
-import { Package, Users, CreditCard, Bike, AlertCircle, Clock, ChevronRight } from 'lucide-react'
+import { AlertCircle, ArrowUpRight, Bike, CreditCard, Package, Users } from 'lucide-react'
 import type { OrderStatus } from '@/types'
 import { first } from '@/lib/supabase/helpers'
 
 export const metadata: Metadata = { title: 'Dashboard' }
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
-  placed:             { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
-  pickup_scheduled:   { bg: 'rgba(99,102,241,0.15)', text: '#818CF8' },
-  picked_up:          { bg: 'rgba(245,158,11,0.15)', text: '#FCD34D' },
-  processing:         { bg: 'rgba(245,158,11,0.2)',  text: '#F59E0B' },
-  ready_for_delivery: { bg: 'rgba(16,185,129,0.15)', text: '#34D399' },
-  out_for_delivery:   { bg: 'rgba(99,102,241,0.2)',  text: '#6366F1' },
-  delivered:          { bg: 'rgba(5,150,105,0.2)',   text: '#059669' },
-  cancelled:          { bg: 'rgba(239,68,68,0.15)',  text: '#EF4444' },
+  placed: { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
+  pickup_scheduled: { bg: 'rgba(47,111,237,0.18)', text: '#93C5FD' },
+  picked_up: { bg: 'rgba(245,158,11,0.18)', text: '#FBBF24' },
+  processing: { bg: 'rgba(14,165,164,0.18)', text: '#5EEAD4' },
+  ready_for_delivery: { bg: 'rgba(34,197,94,0.18)', text: '#86EFAC' },
+  out_for_delivery: { bg: 'rgba(168,85,247,0.18)', text: '#D8B4FE' },
+  delivered: { bg: 'rgba(22,163,74,0.18)', text: '#86EFAC' },
+  cancelled: { bg: 'rgba(239,68,68,0.18)', text: '#FCA5A5' },
 }
 
 export default async function AdminDashboardPage() {
@@ -50,10 +49,10 @@ export default async function AdminDashboardPage() {
   const monthRevenue = (monthRevenueRes.data || []).reduce((s: number, p: { amount: number }) => s + p.amount, 0)
 
   const stats = [
-    { label: "Today's Orders", value: todayOrdersRes.count || 0, sub: `${pendingOrdersRes.count || 0} pending`, icon: <Package className="w-6 h-6" />, color: '#6366F1' },
-    { label: 'Active Subscriptions', value: activeSubsRes.count || 0, sub: 'currently active', icon: <CreditCard className="w-6 h-6" />, color: '#8B5CF6' },
-    { label: 'Revenue Today', value: `₹${Math.round(todayRevenue)}`, sub: `₹${Math.round(monthRevenue)} this month`, icon: <CreditCard className="w-6 h-6" />, color: '#059669' },
-    { label: 'Riders Online', value: onlineRidersRes.count || 0, sub: 'available now', icon: <Bike className="w-6 h-6" />, color: '#F59E0B' },
+    { label: "Today's orders", value: todayOrdersRes.count || 0, sub: `${pendingOrdersRes.count || 0} waiting`, icon: <Package className="w-6 h-6" /> },
+    { label: 'Active plans', value: activeSubsRes.count || 0, sub: 'customers currently subscribed', icon: <CreditCard className="w-6 h-6" /> },
+    { label: 'Revenue today', value: `Rs ${Math.round(todayRevenue)}`, sub: `Rs ${Math.round(monthRevenue)} this month`, icon: <CreditCard className="w-6 h-6" /> },
+    { label: 'Riders online', value: onlineRidersRes.count || 0, sub: 'available now', icon: <Bike className="w-6 h-6" /> },
   ]
 
   type UnassignedOrder = { id: string; order_number: string; status: string; total: number; pickup_date: string; created_at: string; user: { name: string; phone: string } | { name: string; phone: string }[] | null; pickup_slot: { label: string } | { label: string }[] | null }
@@ -63,126 +62,111 @@ export default async function AdminDashboardPage() {
   const recent = (recentOrdersRes.data || []) as unknown as RecentOrder[]
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>Dashboard</h1>
-        <p className="text-sm mt-1" style={{ color: '#64748B' }}>{format(today, 'EEEE, d MMMM yyyy')}</p>
-      </div>
+    <div className="mx-auto max-w-7xl">
+      <section className="admin-surface rounded-[32px] p-6 lg:p-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span className="app-kicker">Operations overview</span>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">Admin dashboard with a cleaner app feel</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6" style={{ color: '#94A3B8' }}>{format(today, 'EEEE, d MMMM yyyy')} • watch team throughput, rider availability, and revenue without hopping between dated panels.</p>
+          </div>
+          <Link href="/admin/orders" className="btn-primary">Open order queue <ArrowUpRight className="h-4 w-4" /></Link>
+        </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="admin-card p-4 rounded-xl">
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: `${stat.color}20`, color: stat.color }}>
-                {stat.icon}
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="admin-card rounded-[24px] p-5">
+              <div className="flex items-center justify-between">
+                <div className="app-icon-wrap">{stat.icon}</div>
               </div>
+              <div className="mt-5 text-3xl font-extrabold tracking-tight text-white">{stat.value}</div>
+              <div className="mt-1 text-sm font-semibold text-white/90">{stat.label}</div>
+              <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{stat.sub}</div>
             </div>
-            <p className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>{stat.value}</p>
-            <p className="text-xs font-medium mt-0.5" style={{ color: '#64748B' }}>{stat.label}</p>
-            <p className="text-xs mt-0.5" style={{ color: '#475569' }}>{stat.sub}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
 
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Unassigned orders */}
-        <div className="admin-card rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #1E2130' }}>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" style={{ color: '#F59E0B' }} />
-              <h2 className="text-sm font-semibold" style={{ color: '#F1F5F9' }}>Needs Assignment</h2>
-              {unassigned.length > 0 && (
-                <span className="text-xs px-1.5 py-0.5 rounded font-bold"
-                  style={{ background: 'rgba(245,158,11,0.2)', color: '#F59E0B' }}>
-                  {unassigned.length}
-                </span>
-              )}
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <section className="admin-card rounded-[28px] p-5 lg:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white">Needs assignment</h2>
+              <p className="mt-1 text-sm" style={{ color: '#94A3B8' }}>Orders still waiting to be claimed by a rider.</p>
             </div>
-            <Link href="/admin/orders" className="text-xs font-medium" style={{ color: '#6366F1' }}>View all</Link>
+            <Link href="/admin/orders" className="app-action-link">View all</Link>
           </div>
-          {unassigned.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <p className="text-sm" style={{ color: '#64748B' }}>All orders assigned ✓</p>
+
+          <div className="mt-5 space-y-3">
+            {unassigned.length === 0 ? (
+              <div className="rounded-[24px] border border-white/10 bg-white/5 px-4 py-8 text-center text-sm" style={{ color: '#94A3B8' }}>Everything is assigned right now.</div>
+            ) : (
+              unassigned.map((order) => {
+                const user = first(order.user)
+                return (
+                  <Link key={order.id} href={`/admin/orders/${order.id}`} className="block rounded-[22px] border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="font-bold text-white">{order.order_number}</div>
+                        <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{user?.name} • {format(new Date(order.pickup_date), 'd MMM')}</div>
+                      </div>
+                      <span className="status-pill" style={{ background: 'rgba(245,158,11,0.18)', color: '#FBBF24' }}>Needs rider</span>
+                    </div>
+                  </Link>
+                )
+              })
+            )}
+          </div>
+        </section>
+
+        <section className="admin-card rounded-[28px] p-5 lg:p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white">Recent orders</h2>
+              <p className="mt-1 text-sm" style={{ color: '#94A3B8' }}>Latest activity across customer orders.</p>
             </div>
-          ) : (
-            unassigned.map((order) => {
+            <Users className="h-5 w-5 text-sky-300" />
+          </div>
+
+          <div className="mt-5 space-y-3">
+            {recent.map((order) => {
+              const status = order.status as OrderStatus
+              const colors = STATUS_COLORS[status]
               const user = first(order.user)
               return (
-                <Link key={order.id} href={`/admin/orders/${order.id}`}>
-                  <div className="flex items-center justify-between px-4 py-3"
-                    style={{ borderBottom: '1px solid #1E2130' }}>
+                <Link key={order.id} href={`/admin/orders/${order.id}`} className="block rounded-[22px] border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm font-medium" style={{ color: '#F1F5F9' }}>{order.order_number}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>
-                        {user?.name} · {format(new Date(order.pickup_date), 'd MMM')}
-                      </p>
+                      <div className="font-bold text-white">{order.order_number}</div>
+                      <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{user?.name}</div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" style={{ color: '#F59E0B' }} />
-                      <ChevronRight className="w-4 h-4" style={{ color: '#64748B' }} />
+                    <div className="text-right">
+                      <span className="status-pill" style={{ background: colors.bg, color: colors.text }}>{status.replace(/_/g, ' ')}</span>
+                      <div className="mt-2 text-sm font-semibold text-white">{order.total > 0 ? `Rs ${order.total}` : ''}</div>
                     </div>
                   </div>
                 </Link>
               )
-            })
-          )}
-        </div>
-
-        {/* Recent orders */}
-        <div className="admin-card rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid #1E2130' }}>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" style={{ color: '#6366F1' }} />
-              <h2 className="text-sm font-semibold" style={{ color: '#F1F5F9' }}>Recent Orders</h2>
-            </div>
-            <Link href="/admin/orders" className="text-xs font-medium" style={{ color: '#6366F1' }}>View all</Link>
+            })}
           </div>
-          {recent.map((order) => {
-            const status = order.status as OrderStatus
-            const colors = STATUS_COLORS[status]
-            const user = first(order.user)
-            return (
-              <Link key={order.id} href={`/admin/orders/${order.id}`}>
-                <div className="flex items-center justify-between px-4 py-3"
-                  style={{ borderBottom: '1px solid #1E2130' }}>
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: '#F1F5F9' }}>{order.order_number}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>{user?.name}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
-                      style={{ background: colors.bg, color: colors.text }}>
-                      {status.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-xs font-bold" style={{ color: '#94A3B8' }}>
-                      {order.total > 0 ? `₹${order.total}` : ''}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+        </section>
+      </div>
 
-        {(openTicketsRes.count || 0) > 0 && (
-          <div className="admin-card rounded-xl p-4 flex items-center gap-3 lg:col-span-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(239,68,68,0.15)' }}>
-              <AlertCircle className="w-5 h-5" style={{ color: '#EF4444' }} />
+      {(openTicketsRes.count || 0) > 0 && (
+        <section className="mt-6 admin-card rounded-[28px] p-5 lg:p-6">
+          <div className="flex items-center gap-4">
+            <div className="app-icon-wrap" style={{ background: 'rgba(239,68,68,0.14)', color: '#f87171' }}>
+              <AlertCircle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold" style={{ color: '#F1F5F9' }}>
-                {openTicketsRes.count} open support ticket{(openTicketsRes.count || 0) > 1 ? 's' : ''}
-              </p>
-              <p className="text-sm" style={{ color: '#64748B' }}>Waiting for response</p>
+              <div className="font-bold text-white">{openTicketsRes.count} support ticket{(openTicketsRes.count || 0) > 1 ? 's' : ''} need attention</div>
+              <div className="text-sm" style={{ color: '#94A3B8' }}>Jump into the queue before the SLA starts slipping.</div>
             </div>
-            <Link href="/admin/support" className="text-sm font-semibold" style={{ color: '#6366F1' }}>
-              View tickets →
-            </Link>
+            <Link href="/admin/support" className="btn-primary">Open support</Link>
           </div>
-        )}
-      </div>
+        </section>
+      )}
     </div>
   )
 }
+

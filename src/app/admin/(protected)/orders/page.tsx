@@ -1,23 +1,22 @@
-// src/app/admin/orders/page.tsx
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { format } from 'date-fns'
-import { ChevronRight, Filter } from 'lucide-react'
+import { Filter, Package, Search } from 'lucide-react'
 import type { OrderStatus } from '@/types'
 import { first } from '@/lib/supabase/helpers'
 
 export const metadata: Metadata = { title: 'Orders' }
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string }> = {
-  placed:             { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
-  pickup_scheduled:   { bg: 'rgba(99,102,241,0.15)', text: '#818CF8' },
-  picked_up:          { bg: 'rgba(245,158,11,0.15)', text: '#FCD34D' },
-  processing:         { bg: 'rgba(245,158,11,0.2)',  text: '#F59E0B' },
-  ready_for_delivery: { bg: 'rgba(16,185,129,0.15)', text: '#34D399' },
-  out_for_delivery:   { bg: 'rgba(99,102,241,0.2)',  text: '#6366F1' },
-  delivered:          { bg: 'rgba(5,150,105,0.2)',   text: '#059669' },
-  cancelled:          { bg: 'rgba(239,68,68,0.15)',  text: '#EF4444' },
+  placed: { bg: 'rgba(100,116,139,0.2)', text: '#94A3B8' },
+  pickup_scheduled: { bg: 'rgba(47,111,237,0.18)', text: '#BFDBFE' },
+  picked_up: { bg: 'rgba(245,158,11,0.18)', text: '#FCD34D' },
+  processing: { bg: 'rgba(14,165,164,0.18)', text: '#99F6E4' },
+  ready_for_delivery: { bg: 'rgba(34,197,94,0.18)', text: '#86EFAC' },
+  out_for_delivery: { bg: 'rgba(168,85,247,0.18)', text: '#D8B4FE' },
+  delivered: { bg: 'rgba(22,163,74,0.18)', text: '#86EFAC' },
+  cancelled: { bg: 'rgba(239,68,68,0.18)', text: '#FCA5A5' },
 }
 
 export default async function AdminOrdersPage({
@@ -40,15 +39,9 @@ export default async function AdminOrdersPage({
     .order('created_at', { ascending: false })
     .limit(100)
 
-  if (searchParams.status && searchParams.status !== 'all') {
-    query = query.eq('status', searchParams.status)
-  }
-  if (searchParams.date) {
-    query = query.eq('pickup_date', searchParams.date)
-  }
-  if (searchParams.zone) {
-    query = query.eq('zone_id', searchParams.zone)
-  }
+  if (searchParams.status && searchParams.status !== 'all') query = query.eq('status', searchParams.status)
+  if (searchParams.date) query = query.eq('pickup_date', searchParams.date)
+  if (searchParams.zone) query = query.eq('zone_id', searchParams.zone)
 
   const { data: orders } = await query
 
@@ -58,95 +51,84 @@ export default async function AdminOrdersPage({
   ]
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold" style={{ color: '#F1F5F9' }}>Orders</h1>
-        <p className="text-sm" style={{ color: '#64748B' }}>{orders?.length || 0} orders</p>
-      </div>
-
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: '#64748B' }}>
-          <Filter className="w-3.5 h-3.5" /> Filter:
+    <div className="mx-auto max-w-7xl">
+      <section className="admin-card rounded-[28px] p-5 lg:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span className="app-kicker">Operations queue</span>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white">Orders and dispatch flow</h1>
+            <p className="mt-2 text-sm" style={{ color: '#94A3B8' }}>{orders?.length || 0} orders in the current result set.</p>
+          </div>
+          <div className="app-pill" style={{ background: 'rgba(255,255,255,0.06)', color: '#cbd5e1' }}>
+            <Search className="h-4 w-4" /> Filter by state or pickup date
+          </div>
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {[{ label: 'All', value: 'all' }, ...ALL_STATUSES.map((s) => ({ label: s.replace(/_/g, ' '), value: s }))].map((opt) => (
-            <Link key={opt.value}
-              href={`/admin/orders?status=${opt.value}${searchParams.date ? `&date=${searchParams.date}` : ''}${searchParams.zone ? `&zone=${searchParams.zone}` : ''}`}>
-              <span className="px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer capitalize"
-                style={{
-                  background: (searchParams.status || 'all') === opt.value ? 'rgba(99,102,241,0.2)' : '#13151C',
-                  color: (searchParams.status || 'all') === opt.value ? '#818CF8' : '#64748B',
-                  border: '1px solid #1E2130',
-                }}>
-                {opt.label}
-              </span>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          <div className="app-pill" style={{ background: 'rgba(255,255,255,0.06)', color: '#94A3B8' }}>
+            <Filter className="h-4 w-4" /> Status
+          </div>
+          {[{ label: 'All', value: 'all' }, ...ALL_STATUSES.map((status) => ({ label: status.replace(/_/g, ' '), value: status }))].map((option) => (
+            <Link
+              key={option.value}
+              href={`/admin/orders?status=${option.value}${searchParams.date ? `&date=${searchParams.date}` : ''}${searchParams.zone ? `&zone=${searchParams.zone}` : ''}`}
+              className="rounded-full px-3 py-2 text-xs font-bold capitalize"
+              style={{
+                background: (searchParams.status || 'all') === option.value ? 'rgba(110,165,255,0.18)' : 'rgba(255,255,255,0.05)',
+                color: (searchParams.status || 'all') === option.value ? '#ffffff' : '#94A3B8',
+                border: '1px solid rgba(148,163,184,0.12)',
+              }}
+            >
+              {option.label}
             </Link>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="admin-card rounded-xl overflow-hidden">
-        <div className="hidden lg:grid grid-cols-6 gap-4 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider"
-          style={{ color: '#64748B', borderBottom: '1px solid #1E2130' }}>
-          <span>Order</span><span>Customer</span><span>Pickup</span>
-          <span>Status</span><span>Rider</span><span>Total</span>
-        </div>
-
+      <section className="mt-6 admin-card rounded-[28px] p-4 lg:p-5">
         {(!orders || orders.length === 0) ? (
-          <div className="px-4 py-12 text-center">
-            <p className="text-sm" style={{ color: '#64748B' }}>No orders found</p>
-          </div>
+          <div className="rounded-[24px] border border-white/10 bg-white/5 px-4 py-12 text-center text-sm" style={{ color: '#94A3B8' }}>No orders found for the selected filters.</div>
         ) : (
-          (orders as unknown as Record<string, unknown>[]).map((order) => {
-            const status = order.status as OrderStatus
-            const colors = STATUS_COLORS[status]
-            const user = first(order.user as { name: string; phone: string } | { name: string; phone: string }[] | null)
-            const pickupSlot = first(order.pickup_slot as { label: string } | { label: string }[] | null)
-            const rider = first(order.rider as { id: string; name: string } | { id: string; name: string }[] | null)
-            return (
-              <Link key={order.id as string} href={`/admin/orders/${order.id as string}`}>
-                <div className="grid lg:grid-cols-6 gap-2 lg:gap-4 px-4 py-3 hover:bg-white hover:bg-opacity-5 transition-colors"
-                  style={{ borderBottom: '1px solid #1E2130' }}>
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: '#F1F5F9' }}>{order.order_number as string}</p>
-                    <p className="text-xs" style={{ color: '#64748B' }}>
-                      {format(new Date(order.created_at as string), 'd MMM, h:mm a')}
-                    </p>
+          <div className="space-y-3">
+            {(orders as unknown as Record<string, unknown>[]).map((order) => {
+              const status = order.status as OrderStatus
+              const colors = STATUS_COLORS[status]
+              const user = first(order.user as { name: string; phone: string } | { name: string; phone: string }[] | null)
+              const pickupSlot = first(order.pickup_slot as { label: string } | { label: string }[] | null)
+              const rider = first(order.rider as { id: string; name: string } | { id: string; name: string }[] | null)
+
+              return (
+                <Link key={order.id as string} href={`/admin/orders/${order.id as string}`} className="block rounded-[24px] border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="grid gap-3 lg:grid-cols-4 lg:gap-6">
+                      <div>
+                        <div className="font-bold text-white">{order.order_number as string}</div>
+                        <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{format(new Date(order.created_at as string), 'd MMM, h:mm a')}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{user?.name || '—'}</div>
+                        <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{user?.phone || ''}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{format(new Date(order.pickup_date as string), 'd MMM')}</div>
+                        <div className="mt-1 text-sm" style={{ color: '#94A3B8' }}>{pickupSlot?.label || 'No slot'}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white">{rider?.name || 'Unassigned'}</div>
+                        <div className="mt-1 text-sm" style={{ color: rider ? '#94A3B8' : '#FCA5A5' }}>{rider ? 'Assigned rider' : 'Needs assignment'}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 lg:flex-col lg:items-end">
+                      <span className="status-pill" style={{ background: colors.bg, color: colors.text }}>{status.replace(/_/g, ' ')}</span>
+                      <span className="text-sm font-bold text-white">{(order.total as number) > 0 ? `Rs ${order.total as number}` : 'Subscription'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm" style={{ color: '#CBD5E1' }}>{user?.name || '—'}</p>
-                    <p className="text-xs" style={{ color: '#64748B' }}>{user?.phone || ''}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: '#CBD5E1' }}>
-                      {format(new Date(order.pickup_date as string), 'd MMM')}
-                    </p>
-                    <p className="text-xs" style={{ color: '#64748B' }}>{pickupSlot?.label || '—'}</p>
-                  </div>
-                  <div>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
-                      style={{ background: colors.bg, color: colors.text }}>
-                      {status.replace(/_/g, ' ')}
-                    </span>
-                  </div>
-                  <div>
-                    {rider
-                      ? <p className="text-sm" style={{ color: '#CBD5E1' }}>{rider.name}</p>
-                      : <span className="text-xs" style={{ color: '#EF4444' }}>Unassigned</span>
-                    }
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold" style={{ color: '#F1F5F9' }}>
-                      {(order.total as number) > 0 ? `₹${order.total as number}` : 'Sub'}
-                    </p>
-                    <ChevronRight className="w-4 h-4 hidden lg:block" style={{ color: '#64748B' }} />
-                  </div>
-                </div>
-              </Link>
-            )
-          })
+                </Link>
+              )
+            })}
+          </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }

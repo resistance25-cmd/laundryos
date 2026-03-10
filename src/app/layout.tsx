@@ -1,4 +1,4 @@
-// src/app/layout.tsx
+﻿// src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: 'LaundryOS — Indore\'s Smartest Laundry Service',
+    default: 'LaundryOS - Indore\'s Smartest Laundry Service',
     template: '%s | LaundryOS',
   },
   description: 'Book laundry pickups, track orders, and manage subscriptions. Serving Indore.',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: process.env.NEXT_PUBLIC_APP_URL || 'https://laundreos.vercel.app',
-    title: 'LaundryOS — Indore\'s Smartest Laundry Service',
+    title: 'LaundryOS - Indore\'s Smartest Laundry Service',
     description: 'Book laundry pickups, track orders in real-time, and save with monthly plans.',
     siteName: 'LaundryOS',
   },
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#6366F1',
+  themeColor: '#2f6fed',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -66,21 +66,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={plusJakartaSans.variable} suppressHydrationWarning>
       <head>
-        {/* PWA meta */}
         <meta name="application-name" content="LaundryOS" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="LaundryOS" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#6366F1" />
+        <meta name="msapplication-TileColor" content="#2f6fed" />
         <meta name="msapplication-tap-highlight" content="no" />
-
-        {/* Apple touch icons */}
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
-
-        {/* Favicon */}
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-192.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-192.png" />
         <link rel="shortcut icon" href="/icons/icon-192.png" />
@@ -88,39 +83,38 @@ export default function RootLayout({
       <body className={`${plusJakartaSans.className} antialiased`}>
         {children}
 
-        {/* Toast notifications */}
         <Toaster
           position="top-center"
           gutter={8}
           toastOptions={{
             duration: 3500,
             style: {
-              background: '#1A1E30',
-              color: '#F0F2FF',
-              border: '1px solid #1E2340',
-              borderRadius: '12px',
+              background: 'rgba(16, 26, 45, 0.92)',
+              color: '#f8fafc',
+              border: '1px solid rgba(148, 163, 184, 0.18)',
+              borderRadius: '18px',
               fontSize: '14px',
               fontFamily: 'Plus Jakarta Sans, sans-serif',
-              fontWeight: '500',
+              fontWeight: '600',
               padding: '12px 16px',
               maxWidth: '380px',
+              backdropFilter: 'blur(18px)',
             },
             success: {
               iconTheme: {
-                primary: '#059669',
-                secondary: '#F0F2FF',
+                primary: '#16a34a',
+                secondary: '#f8fafc',
               },
             },
             error: {
               iconTheme: {
-                primary: '#EF4444',
-                secondary: '#F0F2FF',
+                primary: '#ef4444',
+                secondary: '#f8fafc',
               },
             },
           }}
         />
 
-        {/* Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -142,3 +136,4 @@ export default function RootLayout({
     </html>
   )
 }
+
