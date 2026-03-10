@@ -19,6 +19,9 @@ export default function LoginClient() {
   const [error, setError] = useState<string>('')
 
   const supabase = createClient()
+  const roleCookie = `portal_role=customer; path=/; max-age=2592000; samesite=lax${
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
+  }`
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -50,6 +53,7 @@ export default function LoginClient() {
       }
 
       // Never use router.push() after auth
+      document.cookie = roleCookie
       window.location.href = '/auth/confirm'
     } catch (err) {
       setError(getErrorMessage(err))

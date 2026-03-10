@@ -9,6 +9,9 @@ import { Loader2, Shirt } from 'lucide-react'
 export default function AuthConfirmPage() {
   const [message, setMessage] = useState<string>('Verifying your account...')
   const supabase = createClient()
+  const roleCookie = `portal_role=customer; path=/; max-age=2592000; samesite=lax${
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
+  }`
 
   useEffect(() => {
     let attempts = 0
@@ -37,9 +40,10 @@ export default function AuthConfirmPage() {
 
       if (profile) {
         setMessage('Welcome to LaundryOS!')
+        document.cookie = roleCookie
         window.location.href = '/dashboard'
       } else {
-        // User not in users table — could be an admin/rider trying customer login
+        // User not in users table - could be an admin/rider trying customer login
         await supabase.auth.signOut()
         window.location.href = '/login?error=unauthorized'
       }

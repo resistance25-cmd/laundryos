@@ -13,6 +13,9 @@ export default function RiderLoginClient() {
   const [loading, setLoading] = useState<boolean>(false)
 
   const supabase = createClient()
+  const roleCookie = `portal_role=rider; path=/; max-age=2592000; samesite=lax${
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
+  }`
 
   async function handleLogin(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -47,6 +50,7 @@ export default function RiderLoginClient() {
         return
       }
 
+      document.cookie = roleCookie
       window.location.href = '/rider/dashboard'
     } catch {
       toast.error('Something went wrong')

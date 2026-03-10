@@ -19,6 +19,9 @@ export default function SignupClient() {
   const [error, setError] = useState<string>('')
 
   const supabase = createClient()
+  const roleCookie = `portal_role=customer; path=/; max-age=2592000; samesite=lax${
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
+  }`
 
   function validateForm(): string | null {
     if (name.trim().length < 2) return 'Name must be at least 2 characters'
@@ -66,6 +69,7 @@ export default function SignupClient() {
         return
       }
 
+      document.cookie = roleCookie
       window.location.href = '/auth/confirm'
     } catch (err) {
       setError(getErrorMessage(err))
