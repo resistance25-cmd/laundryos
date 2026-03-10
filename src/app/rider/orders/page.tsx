@@ -22,7 +22,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
 export default async function RiderOrdersPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/rider/login')
+  if (!session) redirect('/login')
 
   const { data: ordersData } = await supabase
     .from('orders')

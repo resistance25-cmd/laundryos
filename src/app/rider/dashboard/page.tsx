@@ -50,7 +50,7 @@ export default function RiderDashboardPage() {
 
   const loadData = useCallback(async (): Promise<void> => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { window.location.href = '/rider/login'; return }
+    if (!session) { window.location.href = '/login'; return }
 
     const [riderRes, ordersRes] = await Promise.all([
       supabase.from('riders').select('id, name, is_available, total_deliveries, rating').eq('id', session.user.id).single(),

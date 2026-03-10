@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: 'Profile' }
 export default async function RiderProfilePage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect('/rider/login')
+  if (!session) redirect('/login')
 
   const { data: riderData } = await supabase
     .from('riders')
@@ -18,7 +18,7 @@ export default async function RiderProfilePage() {
     .eq('id', session.user.id)
     .single()
 
-  if (!riderData) redirect('/rider/login')
+  if (!riderData) redirect('/login')
 
   type RiderRow = { id: string; name: string; phone: string; rating: number; total_deliveries: number; vehicle_type: string | null; vehicle_number: string | null; zone: { name: string } | { name: string }[] | null }
   const rider = riderData as unknown as RiderRow

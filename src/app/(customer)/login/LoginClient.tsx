@@ -1,13 +1,35 @@
 'use client'
-// src/app/(customer)/login/LoginClient.tsx
 
-import { useState, FormEvent } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { isValidPhone, isValidEmail, getErrorMessage } from '@/lib/utils'
-import { Loader2, Shirt, Eye, EyeOff } from 'lucide-react'
+import { getErrorMessage, isValidEmail, isValidPhone } from '@/lib/utils'
+import {
+  ArrowRight,
+  Bike,
+  Eye,
+  EyeOff,
+  Loader2,
+  ShieldCheck,
+  Shirt,
+  Sparkles,
+  TimerReset,
+  Truck,
+} from 'lucide-react'
 
 type LoginMethod = 'email' | 'phone'
+
+const HERO_POINTS = [
+  { icon: <Truck className="h-4 w-4" />, label: 'Doorstep pickup in minutes' },
+  { icon: <TimerReset className="h-4 w-4" />, label: 'Real-time order tracking' },
+  { icon: <Sparkles className="h-4 w-4" />, label: 'Premium wash-care finish' },
+]
+
+const ROLE_HINTS = [
+  { icon: <Shirt className="h-4 w-4" />, label: 'Customers land on their dashboard' },
+  { icon: <ShieldCheck className="h-4 w-4" />, label: 'Admins route into the control center' },
+  { icon: <Bike className="h-4 w-4" />, label: 'Riders jump straight to active jobs' },
+]
 
 export default function LoginClient() {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('email')
@@ -19,9 +41,11 @@ export default function LoginClient() {
   const [error, setError] = useState<string>('')
 
   const supabase = createClient()
-  const roleCookie = `portal_role=customer; path=/; max-age=2592000; samesite=lax${
-    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
-  }`
+  const subtitle = useMemo(() => (
+    loginMethod === 'email'
+      ? 'Use the same sign-in screen for customer, admin, and rider access.'
+      : 'Phone login is perfect for customers who want quick repeat bookings.'
+  ), [loginMethod])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
@@ -31,10 +55,12 @@ export default function LoginClient() {
       setError('Please enter a valid email address')
       return
     }
+
     if (loginMethod === 'phone' && !isValidPhone(phone)) {
       setError('Please enter a valid 10-digit Indian phone number')
       return
     }
+
     if (password.length < 6) {
       setError('Password must be at least 6 characters')
       return
@@ -44,16 +70,14 @@ export default function LoginClient() {
 
     try {
       const { error: signInError } = loginMethod === 'email'
-        ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signInWithPassword({ phone: '+91' + phone, password })
+        ? await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password })
+        : await supabase.auth.signInWithPassword({ phone: `+91${phone}`, password })
 
       if (signInError) {
         setError(signInError.message)
         return
       }
 
-      // Never use router.push() after auth
-      document.cookie = roleCookie
       window.location.href = '/auth/confirm'
     } catch (err) {
       setError(getErrorMessage(err))
@@ -63,159 +87,158 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
-      style={{ background: 'var(--bg)' }}>
-      <Link href="/" className="flex items-center gap-2 mb-8">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: 'var(--primary)' }}>
-          <Shirt className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          LaundryOS
-        </span>
-      </Link>
+    <div className="login-shell">
+      <div className="login-shell__glow login-shell__glow--a" />
+      <div className="login-shell__glow login-shell__glow--b" />
+      <div className="login-shell__noise" />
 
-      <div className="w-full max-w-sm">
-        <div className="card">
-          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
-            Welcome back
-          </h1>
-          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-            Sign in to manage your laundry
-          </p>
+      <div className="login-layout">
+        <section className="login-showcase reveal-up">
+          <Link href="/" className="brand-mark brand-mark--light">
+            <span className="brand-mark__badge"><Shirt className="h-5 w-5" /></span>
+            <span>
+              <strong>LaundryOS</strong>
+              <em>Fast pickup. Premium care.</em>
+            </span>
+          </Link>
 
-          <div className="flex rounded-xl p-1 mb-6 gap-1"
-            style={{ background: 'var(--bg-elevated)' }}>
+          <div className="login-showcase__copy">
+            <span className="eyebrow">Inspired by premium laundry brands</span>
+            <h1>Modern laundry, one sign-in, every role routed automatically.</h1>
+            <p>{subtitle}</p>
+          </div>
+
+          <div className="login-showcase__metrics">
+            <div>
+              <strong>10k+</strong>
+              <span>garments processed</span>
+            </div>
+            <div>
+              <strong>4.9/5</strong>
+              <span>customer rating</span>
+            </div>
+            <div>
+              <strong>24 hrs</strong>
+              <span>express turnaround</span>
+            </div>
+          </div>
+
+          <div className="login-showcase__cards">
+            <article className="floating-tile floating-tile--feature">
+              <p>What you get</p>
+              <ul>
+                {HERO_POINTS.map((item) => (
+                  <li key={item.label}>{item.icon}<span>{item.label}</span></li>
+                ))}
+              </ul>
+            </article>
+            <article className="floating-tile floating-tile--feature delay-2">
+              <p>Role-smart routing</p>
+              <ul>
+                {ROLE_HINTS.map((item) => (
+                  <li key={item.label}>{item.icon}<span>{item.label}</span></li>
+                ))}
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section className="login-panel reveal-up delay-1">
+          <div className="login-panel__header">
+            <span className="eyebrow eyebrow--dark">Secure access</span>
+            <h2>Sign in to continue</h2>
+            <p>Use your existing credentials. We will send you to the right portal after verification.</p>
+          </div>
+
+          <div className="login-methods">
             {(['email', 'phone'] as LoginMethod[]).map((method) => (
               <button
                 key={method}
                 type="button"
-                onClick={() => { setLoginMethod(method); setError('') }}
-                className="flex-1 py-2 text-sm font-semibold rounded-lg transition-all capitalize"
-                style={{
-                  background: loginMethod === method ? 'var(--primary)' : 'transparent',
-                  color: loginMethod === method ? '#fff' : 'var(--text-muted)',
+                onClick={() => {
+                  setLoginMethod(method)
+                  setError('')
                 }}
+                className={loginMethod === method ? 'is-active' : ''}
               >
-                {method}
+                {method === 'email' ? 'Email access' : 'Phone access'}
               </button>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="login-form">
             {loginMethod === 'email' ? (
-              <div>
-                <label className="block text-sm font-medium mb-1.5"
-                  style={{ color: 'var(--text-secondary)' }}>
-                  Email address
-                </label>
+              <label className="field-shell">
+                <span>Email address</span>
                 <input
                   type="email"
                   value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="input-base"
+                  className="input-base input-base--light"
                   autoComplete="email"
                   required
                 />
-              </div>
+              </label>
             ) : (
-              <div>
-                <label className="block text-sm font-medium mb-1.5"
-                  style={{ color: 'var(--text-secondary)' }}>
-                  Phone number
-                </label>
-                <div className="flex gap-2">
-                  <span className="input-base w-16 text-center shrink-0 cursor-default"
-                    style={{ color: 'var(--text-muted)' }}>
-                    +91
-                  </span>
+              <label className="field-shell">
+                <span>Phone number</span>
+                <div className="phone-shell">
+                  <span className="phone-shell__prefix">+91</span>
                   <input
                     type="tel"
                     value={phone}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     placeholder="9876543210"
-                    className="input-base flex-1"
+                    className="input-base input-base--light"
                     autoComplete="tel"
                     inputMode="numeric"
                     required
                   />
                 </div>
-              </div>
+              </label>
             )}
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium"
-                  style={{ color: 'var(--text-secondary)' }}>
-                  Password
-                </label>
-                <Link href="/auth/reset-password"
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--primary)' }}>
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
+            <label className="field-shell">
+              <span>Password</span>
+              <div className="password-shell">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="input-base pr-10"
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="input-base input-base--light"
                   autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: 'var(--text-muted)' }}
+                  className="password-shell__toggle"
+                  onClick={() => setShowPassword((value) => !value)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+            </label>
+
+            <div className="login-panel__actions">
+              <Link href="/auth/reset-password">Forgot password?</Link>
+              <span>Protected by Supabase Auth</span>
             </div>
 
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm font-medium"
-                style={{ background: 'var(--error-bg)', color: 'var(--error)' }}>
-                {error}
-              </div>
-            )}
+            {error && <div className="form-alert">{error}</div>}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : 'Sign In'}
+            <button type="submit" disabled={loading} className="btn-primary login-panel__submit">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+              {loading ? 'Verifying account...' : 'Continue to your portal'}
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>or</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          </div>
-
-          <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold" style={{ color: 'var(--primary)' }}>
-              Create one
-            </Link>
+          <p className="login-panel__footer">
+            New here? <Link href="/signup">Create your account</Link>
           </p>
-        </div>
-
-        <p className="text-center text-xs mt-6" style={{ color: 'var(--text-muted)' }}>
-          By signing in, you agree to our{' '}
-          <Link href="/terms" className="underline underline-offset-2">Terms</Link>
-          {' '}and{' '}
-          <Link href="/privacy" className="underline underline-offset-2">Privacy Policy</Link>
-        </p>
+        </section>
       </div>
     </div>
   )

@@ -1,10 +1,9 @@
-// src/app/rider/layout.tsx
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: { default: 'Rider — LaundryOS', template: '%s | Rider' },
+  title: { default: 'Rider | LaundryOS', template: '%s | Rider' },
   robots: { index: false, follow: false },
 }
 
@@ -12,9 +11,8 @@ export default async function RiderLayout({ children }: { children: React.ReactN
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (!session) redirect('/rider/login')
+  if (!session) redirect('/login')
 
-  // Full rider role check
   const { data: riderProfile } = await supabase
     .from('riders')
     .select('id, name, is_active, is_available')
@@ -23,7 +21,7 @@ export default async function RiderLayout({ children }: { children: React.ReactN
 
   if (!riderProfile || !riderProfile.is_active) {
     await supabase.auth.signOut()
-    redirect('/rider/login?error=inactive')
+    redirect('/login?error=inactive')
   }
 
   return (
@@ -37,20 +35,18 @@ export default async function RiderLayout({ children }: { children: React.ReactN
     >
       {children}
 
-      {/* Bottom navigation */}
       <nav
         className="fixed bottom-0 left-0 right-0 safe-bottom z-10"
         style={{ background: '#13202E', borderTop: '1px solid #1E3040' }}
       >
         <div className="flex items-center justify-around max-w-lg mx-auto h-16">
           {[
-            { label: 'Home', href: '/rider/dashboard', icon: '🏠' },
-            { label: 'Orders', href: '/rider/orders', icon: '📦' },
-            { label: 'Profile', href: '/rider/profile', icon: '👤' },
+            { label: 'Home', href: '/rider/dashboard', icon: 'Home' },
+            { label: 'Orders', href: '/rider/orders', icon: 'Jobs' },
+            { label: 'Profile', href: '/rider/profile', icon: 'Me' },
           ].map((item) => (
-            <a key={item.href} href={item.href}
-              className="flex flex-col items-center gap-1 px-6 py-2">
-              <span className="text-xl">{item.icon}</span>
+            <a key={item.href} href={item.href} className="flex flex-col items-center gap-1 px-6 py-2">
+              <span className="text-sm font-semibold">{item.icon}</span>
               <span className="text-xs font-medium" style={{ color: '#64748B' }}>{item.label}</span>
             </a>
           ))}

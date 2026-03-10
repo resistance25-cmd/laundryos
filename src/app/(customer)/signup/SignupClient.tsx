@@ -1,11 +1,16 @@
 'use client'
-// src/app/(customer)/signup/SignupClient.tsx
 
-import { useState, FormEvent } from 'react'
+import { FormEvent, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { isValidPhone, isValidEmail, getErrorMessage } from '@/lib/utils'
-import { Loader2, Shirt, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
+import { getErrorMessage, isValidEmail, isValidPhone } from '@/lib/utils'
+import { ArrowRight, CheckCircle2, Loader2, Shirt, Sparkles, Star, Truck } from 'lucide-react'
+
+const BENEFITS = [
+  'Doorstep pickup and delivery across Indore',
+  'Subscription-friendly pricing and live tracking',
+  'Fast reorders with saved address and profile data',
+]
 
 export default function SignupClient() {
   const [name, setName] = useState<string>('')
@@ -13,15 +18,20 @@ export default function SignupClient() {
   const [phone, setPhone] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
-  const [showPassword, setShowPassword] = useState<boolean>(false)
   const [referralCode, setReferralCode] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
 
   const supabase = createClient()
-  const roleCookie = `portal_role=customer; path=/; max-age=2592000; samesite=lax${
-    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
-  }`
+  const passwordStrength = useMemo(() => {
+    if (password.length === 0) return { label: '', width: '0%' }
+    if (password.length < 6) return { label: 'Weak', width: '32%' }
+    if (password.length < 8) return { label: 'Fair', width: '58%' }
+    if (/^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])/.test(password)) {
+      return { label: 'Strong', width: '100%' }
+    }
+    return { label: 'Good', width: '78%' }
+  }, [password])
 
   function validateForm(): string | null {
     if (name.trim().length < 2) return 'Name must be at least 2 characters'
@@ -46,12 +56,12 @@ export default function SignupClient() {
 
     try {
       const { error: signUpError } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
           data: {
             name: name.trim(),
-            phone: phone,
+            phone,
             role: 'customer',
             referral_code: referralCode.trim() || undefined,
           },
@@ -63,13 +73,16 @@ export default function SignupClient() {
         return
       }
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      })
+
       if (signInError) {
         window.location.href = '/login?message=Account+created.+Please+sign+in.'
         return
       }
 
-      document.cookie = roleCookie
       window.location.href = '/auth/confirm'
     } catch (err) {
       setError(getErrorMessage(err))
@@ -78,129 +91,159 @@ export default function SignupClient() {
     }
   }
 
-  const passwordStrength = (): { label: string; color: string; width: string } => {
-    if (password.length === 0) return { label: '', color: 'transparent', width: '0%' }
-    if (password.length < 6) return { label: 'Weak', color: '#EF4444', width: '25%' }
-    if (password.length < 8) return { label: 'Fair', color: '#F59E0B', width: '50%' }
-    if (/^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9])/.test(password)) {
-      return { label: 'Strong', color: '#059669', width: '100%' }
-    }
-    return { label: 'Good', color: '#6366F1', width: '75%' }
-  }
-
-  const strength = passwordStrength()
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
-      style={{ background: 'var(--bg)' }}>
-      <Link href="/" className="flex items-center gap-2 mb-8">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-          style={{ background: 'var(--primary)' }}>
-          <Shirt className="w-5 h-5 text-white" />
-        </div>
-        <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>LaundryOS</span>
-      </Link>
+    <div className="login-shell signup-shell">
+      <div className="login-shell__glow login-shell__glow--a" />
+      <div className="login-shell__glow login-shell__glow--b" />
+      <div className="login-shell__noise" />
 
-      <div className="w-full max-w-sm">
-        <div className="card">
-          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Create account</h1>
-          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Join Indore&apos;s smartest laundry service</p>
+      <div className="login-layout">
+        <section className="login-showcase reveal-up">
+          <Link href="/" className="brand-mark brand-mark--light">
+            <span className="brand-mark__badge"><Shirt className="h-5 w-5" /></span>
+            <span>
+              <strong>LaundryOS</strong>
+              <em>Fresh care for busy households</em>
+            </span>
+          </Link>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Full name</label>
-              <input type="text" value={name}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                placeholder="Rahul Sharma" className="input-base" autoComplete="name" required />
-            </div>
+          <div className="login-showcase__copy">
+            <span className="eyebrow">Premium laundry subscription</span>
+            <h1>Create your account and start booking in under a minute.</h1>
+            <p>Built for repeat laundry, faster reorders, cleaner tracking, and a polished delivery experience.</p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Email address</label>
-              <input type="email" value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                placeholder="rahul@example.com" className="input-base" autoComplete="email" required />
-            </div>
+          <div className="login-showcase__cards">
+            <article className="floating-tile floating-tile--feature">
+              <p>Member benefits</p>
+              <ul>
+                {BENEFITS.map((item) => (
+                  <li key={item}><Sparkles className="h-4 w-4" /><span>{item}</span></li>
+                ))}
+              </ul>
+            </article>
+            <article className="floating-tile floating-tile--feature delay-2">
+              <p>Why people switch</p>
+              <ul>
+                <li><Truck className="h-4 w-4" /><span>Faster pickups around Indore</span></li>
+                <li><Star className="h-4 w-4" /><span>Consistent garment finishing</span></li>
+                <li><CheckCircle2 className="h-4 w-4" /><span>Simple plans and cleaner support</span></li>
+              </ul>
+            </article>
+          </div>
+        </section>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Phone number</label>
-              <div className="flex gap-2">
-                <span className="input-base w-16 text-center shrink-0 cursor-default" style={{ color: 'var(--text-muted)' }}>+91</span>
-                <input type="tel" value={phone}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="9876543210" className="input-base flex-1" inputMode="numeric" required />
+        <section className="login-panel reveal-up delay-1">
+          <div className="login-panel__header">
+            <span className="eyebrow eyebrow--dark">Customer onboarding</span>
+            <h2>Create your account</h2>
+            <p>Customers stay in the customer app. Admins and riders still route automatically from the same sign-in screen.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="login-form signup-form">
+            <label className="field-shell">
+              <span>Full name</span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Rahul Sharma"
+                className="input-base input-base--light"
+                autoComplete="name"
+                required
+              />
+            </label>
+
+            <label className="field-shell">
+              <span>Email address</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="rahul@example.com"
+                className="input-base input-base--light"
+                autoComplete="email"
+                required
+              />
+            </label>
+
+            <label className="field-shell">
+              <span>Phone number</span>
+              <div className="phone-shell">
+                <span className="phone-shell__prefix">+91</span>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  placeholder="9876543210"
+                  className="input-base input-base--light"
+                  inputMode="numeric"
+                  required
+                />
               </div>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Password</label>
-              <div className="relative">
-                <input type={showPassword ? 'text' : 'password'} value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters" className="input-base pr-10" autoComplete="new-password" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <label className="field-shell">
+              <span>Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                className="input-base input-base--light"
+                autoComplete="new-password"
+                required
+              />
               {password.length > 0 && (
-                <div className="mt-2">
-                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                    <div className="h-full rounded-full transition-all duration-300"
-                      style={{ width: strength.width, background: strength.color }} />
-                  </div>
-                  <p className="text-xs mt-1" style={{ color: strength.color }}>{strength.label}</p>
+                <div className="strength-bar">
+                  <div className="strength-bar__fill" style={{ width: passwordStrength.width }} />
+                  <span>{passwordStrength.label}</span>
                 </div>
               )}
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>Confirm password</label>
-              <div className="relative">
-                <input type="password" value={confirmPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter password" className="input-base pr-10" autoComplete="new-password" required />
-                {confirmPassword.length > 0 && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    {password === confirmPassword
-                      ? <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--success)' }} />
-                      : <span className="text-xs" style={{ color: 'var(--error)' }}>✗</span>}
-                  </div>
+            <label className="field-shell">
+              <span>Confirm password</span>
+              <div className="password-shell">
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="input-base input-base--light"
+                  autoComplete="new-password"
+                  required
+                />
+                {confirmPassword.length > 0 && password === confirmPassword && (
+                  <span className="password-shell__status"><CheckCircle2 className="h-4 w-4" /></span>
                 )}
               </div>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                Referral code <span className="font-normal" style={{ color: 'var(--text-muted)' }}>(optional)</span>
-              </label>
-              <input type="text" value={referralCode}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReferralCode(e.target.value.toUpperCase())}
-                placeholder="ABCD1234" className="input-base uppercase tracking-wider" maxLength={8} />
-            </div>
+            <label className="field-shell">
+              <span>Referral code <em>(optional)</em></span>
+              <input
+                type="text"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="ABCD1234"
+                className="input-base input-base--light"
+                maxLength={8}
+              />
+            </label>
 
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm font-medium"
-                style={{ background: 'var(--error-bg)', color: 'var(--error)' }}>{error}</div>
-            )}
+            {error && <div className="form-alert">{error}</div>}
 
-            <button type="submit" disabled={loading} className="btn-primary w-full mt-2">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" />Creating account...</> : 'Create Account'}
+            <button type="submit" disabled={loading} className="btn-primary login-panel__submit">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>or</span>
-            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          </div>
-
-          <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-            Already have an account?{' '}
-            <Link href="/login" className="font-semibold" style={{ color: 'var(--primary)' }}>Sign in</Link>
+          <p className="login-panel__footer">
+            Already have an account? <Link href="/login">Sign in</Link>
           </p>
-        </div>
+        </section>
       </div>
     </div>
   )
