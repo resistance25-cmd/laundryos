@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import {
@@ -21,68 +21,87 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'LaundryOS | Modern Laundry Pickup and Delivery in Indore',
-  description: 'Premium laundry pickup, garment care, subscriptions, live tracking, and business laundry services for modern households and local operations in Indore.',
+  title: 'LaundryOS | Laundry Pickup, Care, and Delivery in Indore',
+  description:
+    'LaundryOS is a modern laundry product for pickup, garment care, subscriptions, live tracking, and business laundry operations in Indore.',
 }
 
-const TRUST_STRIPS = ['Pickup in 30 mins', '24-hour turnaround', 'Live order tracking', 'Premium fabric care']
+const TRUST_STRIPS = ['Pickup in 30 mins', '24-hour turnaround', 'Live order tracking', 'Fabric-safe care']
+
+const PRODUCT_MODULES = [
+  {
+    title: 'Customer app',
+    copy: 'Book pickups, track every order, reorder in seconds, and manage addresses from one clean flow.',
+    icon: <Sparkles className="h-5 w-5" />,
+    tone: 'product-card--blue',
+  },
+  {
+    title: 'Smart scheduling',
+    copy: 'Recurring plans, express options, and time-slot control built for daily routines instead of one-off bookings.',
+    icon: <CalendarClock className="h-5 w-5" />,
+    tone: 'product-card--gold',
+  },
+  {
+    title: 'Admin control tower',
+    copy: 'See order status, rider assignment, support load, and business operations in one operational surface.',
+    icon: <BriefcaseBusiness className="h-5 w-5" />,
+    tone: 'product-card--mint',
+  },
+  {
+    title: 'Rider dispatch',
+    copy: 'Give riders a faster task board with clear pickups, delivery state, and route-first actions.',
+    icon: <Truck className="h-5 w-5" />,
+    tone: 'product-card--slate',
+  },
+]
 
 const SERVICE_CARDS = [
   {
-    title: 'Wash & Fold',
-    copy: 'Everyday laundry done with sorted wash cycles, careful drying, and tidy packaging.',
-    tone: 'service-card--blue',
+    title: 'Wash and fold',
+    copy: 'Everyday laundry with sorted cycles, careful drying, and crisp packaging for repeat household use.',
+    icon: <Shirt className="h-5 w-5" />,
+    note: 'Best for weekly laundry',
   },
   {
-    title: 'Steam Press',
-    copy: 'Sharp finishing for workwear, occasion outfits, and weekly rotation staples.',
-    tone: 'service-card--gold',
+    title: 'Steam press',
+    copy: 'Sharp finishing for workwear, event outfits, uniforms, and all the pieces that need structure.',
+    icon: <BadgeCheck className="h-5 w-5" />,
+    note: 'Fast finishing available',
   },
   {
-    title: 'Dry Clean',
-    copy: 'Delicate garment care for premium fabrics, jackets, sarees, and formal wear.',
-    tone: 'service-card--mint',
+    title: 'Dry clean care',
+    copy: 'Premium handling for delicate garments, jackets, occasion wear, sarees, and formal collections.',
+    icon: <Sparkles className="h-5 w-5" />,
+    note: 'Fabric-specific processing',
+  },
+  {
+    title: 'Subscriptions',
+    copy: 'Repeat pickups, family plans, and dependable weekly routines designed for customers who never want to think about laundry again.',
+    icon: <TimerReset className="h-5 w-5" />,
+    note: 'Recurring by design',
   },
 ]
 
 const JOURNEY = [
   {
     title: 'Schedule in minutes',
-    body: 'Choose pickup time, service type, and instructions from a clean mobile flow.',
+    body: 'Choose pickup time, service type, care notes, and address from a tight app-like booking flow.',
     icon: <Clock3 className="h-5 w-5" />,
   },
   {
     title: 'Tracked pickup',
-    body: 'Your rider is assigned in real time and every order move is visible in the app.',
+    body: 'The rider gets assigned, the customer gets visibility, and the admin team sees every handoff live.',
     icon: <Truck className="h-5 w-5" />,
   },
   {
     title: 'Premium processing',
-    body: 'Garments go through quality checks, smart sorting, and service-specific finishing.',
+    body: 'Orders move through sorting, service-specific treatment, quality checks, and careful packaging.',
     icon: <Sparkles className="h-5 w-5" />,
   },
   {
     title: 'Fresh delivery',
-    body: 'Receive your order neatly packed and ready to wear, typically within 24 hours.',
+    body: 'Return clean garments on time with clear completion states, support visibility, and delight in the final handoff.',
     icon: <BadgeCheck className="h-5 w-5" />,
-  },
-]
-
-const MISSING_FEATURES = [
-  {
-    title: 'Recurring pickup plans',
-    body: 'Weekly household routines, subscription-first repeat pickups, and cleaner reordering for busy families.',
-    icon: <CalendarClock className="h-5 w-5" />,
-  },
-  {
-    title: 'Business laundry accounts',
-    body: 'Airbnb, salons, hostels, gyms, clinics, and small hotels need scheduled commercial pickup with centralized billing.',
-    icon: <BriefcaseBusiness className="h-5 w-5" />,
-  },
-  {
-    title: 'Care and priority options',
-    body: 'Express turnaround, delicate handling notes, stain treatment preferences, and premium garment handling should be visible upfront.',
-    icon: <Sparkles className="h-5 w-5" />,
   },
 ]
 
@@ -94,13 +113,15 @@ const BUSINESS_SEGMENTS = [
 
 const STATS = [
   { value: '4.9', label: 'Average rating' },
-  { value: '10k+', label: 'Garments processed' },
-  { value: '24h', label: 'Express turnaround' },
+  { value: '24h', label: 'Typical turnaround' },
+  { value: 'B2C + B2B', label: 'Operational model' },
 ]
 
 export default async function LandingPage() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
   const primaryHref = session ? '/dashboard' : '/login'
   const secondaryHref = session ? '/book' : '/signup'
   const businessHref = session ? '/support' : '/signup'
@@ -113,7 +134,9 @@ export default async function LandingPage() {
 
       <nav className="marketing-nav">
         <Link href="/" className="brand-mark">
-          <span className="brand-mark__badge"><WashingMachine className="h-5 w-5" /></span>
+          <span className="brand-mark__badge">
+            <WashingMachine className="h-5 w-5" />
+          </span>
           <span>
             <strong>LaundryOS</strong>
             <em>Pickup. Care. Delivery.</em>
@@ -121,11 +144,16 @@ export default async function LandingPage() {
         </Link>
 
         <div className="marketing-nav__actions">
+          <a href="#product">Product</a>
           <a href="#services">Services</a>
           <a href="#experience">Experience</a>
           <a href="#business">Business</a>
-          <Link href={primaryHref} className="btn-ghost">{session ? 'Dashboard' : 'Sign in'}</Link>
-          <Link href={secondaryHref} className="btn-primary">{session ? 'Book pickup' : 'Get started'}</Link>
+          <Link href={primaryHref} className="btn-ghost">
+            {session ? 'Dashboard' : 'Sign in'}
+          </Link>
+          <Link href={secondaryHref} className="btn-primary">
+            {session ? 'Book pickup' : 'Get started'}
+          </Link>
         </div>
       </nav>
 
@@ -133,16 +161,16 @@ export default async function LandingPage() {
         <section className="hero-band">
           <div className="hero-band__content reveal-up">
             <div className="hero-band__eyebrow">
-              <span>Modern laundry experience</span>
-              <span>Built for busy homes and growing local businesses</span>
+              <span>Minimal on desktop</span>
+              <span>App-like on mobile</span>
             </div>
             <h1>
-              A real laundry product,
-              <span>not just a pickup website.</span>
+              LaundryOS makes laundry
+              <span>feel like a modern product.</span>
             </h1>
             <p>
-              LaundryOS combines premium garment care, live order tracking, repeat scheduling,
-              subscription savings, and business-ready operations into one cleaner platform.
+              A premium pickup and garment-care experience for households, riders, and operations teams.
+              Clean on the front. Disciplined underneath.
             </p>
 
             <div className="hero-band__actions">
@@ -150,34 +178,68 @@ export default async function LandingPage() {
                 {session ? 'Book your next pickup' : 'Start with LaundryOS'}
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <a href="#business" className="btn-ghost">See business features</a>
+              <a href="#product" className="btn-ghost">
+                Explore the product
+              </a>
             </div>
 
             <div className="hero-band__trust">
               {TRUST_STRIPS.map((item) => (
-                <span key={item}><ShieldCheck className="h-4 w-4" />{item}</span>
+                <span key={item}>
+                  <ShieldCheck className="h-4 w-4" />
+                  {item}
+                </span>
               ))}
             </div>
           </div>
 
           <div className="hero-band__visual reveal-up delay-1">
-            <div className="hero-stack">
-              <div className="hero-stack__main">
-                <div className="hero-stack__badge">Household + commercial ready</div>
-                <h2>From weekly family laundry to recurring hostel and Airbnb runs.</h2>
-                <p>Customers get a mobile-first ordering flow while admins and riders coordinate repeat pickups, urgent loads, and service quality behind the scenes.</p>
-                <div className="hero-stack__meta">
-                  <span><MapPin className="h-4 w-4" /> Vijay Nagar, Palasia, Nipania</span>
-                  <span><TimerReset className="h-4 w-4" /> Repeat schedules and express care</span>
+            <div className="hero-productboard">
+              <article className="hero-productboard__panel">
+                <span className="eyebrow">One operating system</span>
+                <h2>Built for customer flow, dispatch, and garment care.</h2>
+                <p>
+                  The same platform powers customer ordering, rider task movement, and admin visibility
+                  without looking like a bulky dashboard.
+                </p>
+                <div className="hero-productboard__mini">
+                  <span>
+                    <MapPin className="h-4 w-4" />
+                    Indore zones covered
+                  </span>
+                  <span>
+                    <TimerReset className="h-4 w-4" />
+                    Repeat schedules ready
+                  </span>
                 </div>
-              </div>
-              <div className="hero-stack__float hero-stack__float--top">
-                <strong>24h</strong>
-                <span>Fast turnaround</span>
-              </div>
-              <div className="hero-stack__float hero-stack__float--bottom">
-                <strong>B2C + B2B</strong>
-                <span>Homes, uniforms, hosting</span>
+              </article>
+
+              <div className="hero-productboard__phone">
+                <div className="hero-productboard__phone-top">
+                  <span>Today</span>
+                  <strong>3 active orders</strong>
+                </div>
+                <div className="hero-productboard__phone-card">
+                  <div>
+                    <p>Pickup scheduled</p>
+                    <strong>Wash and fold</strong>
+                  </div>
+                  <span>7:30 PM</span>
+                </div>
+                <div className="hero-productboard__phone-card">
+                  <div>
+                    <p>Rider assigned</p>
+                    <strong>Tracking live</strong>
+                  </div>
+                  <span>12 mins away</span>
+                </div>
+                <div className="hero-productboard__phone-card hero-productboard__phone-card--soft">
+                  <div>
+                    <p>Ready for delivery</p>
+                    <strong>2 orders complete</strong>
+                  </div>
+                  <span>Fresh packed</span>
+                </div>
               </div>
             </div>
           </div>
@@ -192,36 +254,42 @@ export default async function LandingPage() {
           ))}
         </section>
 
-        <section id="services" className="section-shell">
+        <section id="product" className="section-shell product-section">
           <div className="section-heading reveal-up">
-            <span className="eyebrow">Services designed for repeat use</span>
-            <h2>Premium care, everyday convenience, and a sharper digital experience.</h2>
+            <span className="eyebrow">Product layers</span>
+            <h2>A laundry business brand on the surface, a full operating system underneath.</h2>
+            <p>
+              LaundryOS should feel effortless for customers while still giving teams the tools to dispatch,
+              assign, support, and scale repeat service.
+            </p>
           </div>
 
-          <div className="services-grid">
-            {SERVICE_CARDS.map((card, index) => (
-              <article key={card.title} className={`service-card ${card.tone} reveal-up delay-${index + 1}`}>
-                <div className="service-card__icon"><Shirt className="h-5 w-5" /></div>
-                <h3>{card.title}</h3>
-                <p>{card.copy}</p>
-                <span>Doorstep pickup available</span>
+          <div className="product-grid">
+            {PRODUCT_MODULES.map((module, index) => (
+              <article key={module.title} className={`product-card ${module.tone} reveal-up delay-${(index % 3) + 1}`}>
+                <div className="product-card__icon">{module.icon}</div>
+                <h3>{module.title}</h3>
+                <p>{module.copy}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="section-shell section-shell--split">
+        <section id="services" className="section-shell">
           <div className="section-heading reveal-up">
-            <span className="eyebrow">What the product still needs</span>
-            <h2>The best laundry businesses do more than pickup and delivery. They support routines, urgency, and commercial demand.</h2>
+            <span className="eyebrow">Core services</span>
+            <h2>Product cards down the page, designed like a minimal storefront.</h2>
           </div>
-          <div className="services-grid">
-            {MISSING_FEATURES.map((feature, index) => (
-              <article key={feature.title} className={`service-card reveal-up delay-${(index % 3) + 1}`}>
-                <div className="service-card__icon">{feature.icon}</div>
-                <h3>{feature.title}</h3>
-                <p>{feature.body}</p>
-                <span>Now part of the direction</span>
+
+          <div className="product-rail">
+            {SERVICE_CARDS.map((card, index) => (
+              <article key={card.title} className={`service-card service-card--minimal reveal-up delay-${(index % 3) + 1}`}>
+                <div className="service-card__header">
+                  <div className="service-card__icon">{card.icon}</div>
+                  <span>{card.note}</span>
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.copy}</p>
               </article>
             ))}
           </div>
@@ -230,9 +298,9 @@ export default async function LandingPage() {
         <section id="experience" className="section-shell section-shell--split">
           <div className="section-heading reveal-up">
             <span className="eyebrow">Operational flow</span>
-            <h2>The customer side feels effortless because the backend journey is disciplined.</h2>
+            <h2>The customer experience feels light because the backend journey is disciplined.</h2>
             <p>
-              Customers get a polished storefront while admins and riders use dedicated flows behind the scenes.
+              That is the difference between a laundry website and a laundry product.
             </p>
           </div>
 
@@ -250,44 +318,65 @@ export default async function LandingPage() {
 
         <section id="business" className="section-shell coverage-panel reveal-up">
           <div className="section-heading">
-            <span className="eyebrow">Business and bulk laundry</span>
-            <h2>Built for homes first, but ready to expand into recurring business accounts.</h2>
-            <p>Local laundry brands that win usually serve both retail households and operational accounts that need dependable pickup, billing, and turnaround.</p>
+            <span className="eyebrow">Business accounts</span>
+            <h2>Ready for homes today, ready for high-repeat commercial pickup next.</h2>
+            <p>
+              The best local laundry brands win both household loyalty and recurring operational demand.
+            </p>
           </div>
           <div className="coverage-panel__grid">
             {BUSINESS_SEGMENTS.map((segment) => (
-              <span key={segment.label}>{segment.icon}{segment.label}</span>
+              <span key={segment.label}>
+                {segment.icon}
+                {segment.label}
+              </span>
             ))}
           </div>
           <div className="coverage-panel__cta">
-            <Link href={businessHref} className="btn-primary">{session ? 'Talk to support about business use' : 'Request a business account'}</Link>
+            <Link href={businessHref} className="btn-primary">
+              {session ? 'Talk to support about business use' : 'Request a business account'}
+            </Link>
           </div>
         </section>
 
         <section className="quote-panel reveal-up">
           <div>
-            <span className="eyebrow">Built for trust</span>
-            <h2>The best laundry products feel calm, fast, premium, and operationally reliable. That is the bar here.</h2>
+            <span className="eyebrow">Why it works</span>
+            <h2>Calm UI, visible operations, clean trust signals, and service cards that sell the product fast.</h2>
           </div>
           <div className="quote-panel__chips">
-            <span><Star className="h-4 w-4" /> Fabric-safe processing</span>
-            <span><Truck className="h-4 w-4" /> Doorstep logistics</span>
-            <span><Sparkles className="h-4 w-4" /> Experience-first UI</span>
+            <span>
+              <Star className="h-4 w-4" />
+              Premium presentation
+            </span>
+            <span>
+              <Truck className="h-4 w-4" />
+              Doorstep logistics
+            </span>
+            <span>
+              <Sparkles className="h-4 w-4" />
+              App-like mobile flow
+            </span>
           </div>
         </section>
 
         <section id="coverage" className="section-shell coverage-panel reveal-up">
           <div className="section-heading">
             <span className="eyebrow">Coverage</span>
-            <h2>Serving the neighborhoods where convenience matters most.</h2>
+            <h2>Serving the neighborhoods where convenience and speed matter most.</h2>
           </div>
           <div className="coverage-panel__grid">
             {['Vijay Nagar', 'Scheme 54', 'Palasia', 'Nipania', 'AB Road', 'Bapat Square'].map((zone) => (
-              <span key={zone}><MapPin className="h-4 w-4" />{zone}</span>
+              <span key={zone}>
+                <MapPin className="h-4 w-4" />
+                {zone}
+              </span>
             ))}
           </div>
           <div className="coverage-panel__cta">
-            <Link href={secondaryHref} className="btn-primary">{session ? 'Book a pickup' : 'Create your account'}</Link>
+            <Link href={secondaryHref} className="btn-primary">
+              {session ? 'Book a pickup' : 'Create your account'}
+            </Link>
           </div>
         </section>
       </main>
